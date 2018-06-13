@@ -134,5 +134,8 @@ public struct DiGraph<V: DiVertex, E: DiEdge> : DiGraphProt {
     }
     public mutating func add(vertex: V) {
         self.vertices[vertex.id] = vertex
+        if newVertexId <= vertex.id {
+            newVertexId = vertex.id + 1
+        }
     }
 }

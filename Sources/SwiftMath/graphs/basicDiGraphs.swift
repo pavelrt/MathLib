@@ -35,3 +35,58 @@ public func createCircuit(length: Int) -> DiGraph<AbstractDiVertex, AbstractDiEd
     _ = path.addEdge(from: end.id, to: start.id)
     return path
 }
+
+public func createGrid(dimensions: Int...) -> (DiGraph<AbstractDiVertex, AbstractDiEdge>, ([Int]) -> Int) {
+    var grid = DiGraph<AbstractDiVertex, AbstractDiEdge>()
+    
+    let indexer : ([Int]) -> Int = { (coordinates: [Int]) -> Int  in
+        var id = 0
+        for coordinateIdx in coordinates.indices.reversed() {
+            let coordinate = coordinates[coordinateIdx]
+            id *= dimensions[coordinateIdx]
+            id += coordinate
+        }
+        return id
+    }
+    
+    func loop(_ function: @escaping ([Int])->()) {
+        func generateCoordinates(dimIdx: Int, coordinates: [Int]) {
+            if dimIdx >= dimensions.count {
+                function(coordinates)
+            } else {
+                for i in 0..<dimensions[dimIdx] {
+                    var newCoordinates = coordinates
+                    newCoordinates.append(i)
+                    generateCoordinates(dimIdx: dimIdx + 1, coordinates: newCoordinates)
+                }
+            }
+        }
+        generateCoordinates(dimIdx: 0, coordinates: [])
+    }
+    
+    // Create vertices
+    loop { coordinates in
+        let vertex = AbstractDiVertex(id: indexer(coordinates))
+        grid.add(vertex: vertex)
+    }
+    
+    // Create edges
+    loop { coordinates in
+        let vertex = grid.vertices[indexer(coordinates)]!
+        let vertexId = vertex.id
+        for dimensionIdx in dimensions.indices {
+            let coordinate = coordinates[dimensionIdx]
+            if coordinate > 0 {
+                var neighboorhCoordinates = coordinates
+                neighboorhCoordinates[dimensionIdx] -= 1
+                _ = grid.addEdge(from: vertexId, to: indexer(neighboorhCoordinates))
+            }
+            if coordinate < dimensions[dimensionIdx] - 1 {
+                var neighboorhCoordinates = coordinates
+                neighboorhCoordinates[dimensionIdx] += 1
+                _ = grid.addEdge(from: vertexId, to: indexer(neighboorhCoordinates))
+            }
+        }
+    }
+    return (grid, indexer)
+}
