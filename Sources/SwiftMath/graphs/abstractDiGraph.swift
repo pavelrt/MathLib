@@ -7,7 +7,7 @@
 
 import Foundation
 
-public struct SimpleVertex : DiVertex {
+public struct AbstractDiVertex : DiVertex {
     public init(id: Int) {
         self.id = id
         self.outEdges = []
@@ -18,7 +18,7 @@ public struct SimpleVertex : DiVertex {
     public var inEdges: [Int]
 }
 
-public struct SimpleEdge : DiEdge{
+public struct AbstractDiEdge : DiEdge{
     public init(id: Int, start from: Int, end to: Int) {
         self.start = from
         self.end = to
@@ -30,7 +30,7 @@ public struct SimpleEdge : DiEdge{
 }
 
 
-extension DiGraph where DiGraph.V == SimpleVertex, DiGraph.E == SimpleEdge {
+extension DiGraph where DiGraph.V == AbstractDiVertex, DiGraph.E == AbstractDiEdge {
     public mutating func addNewVertex() -> V {
         let vertexId = self.newVertexId
         self.newVertexId += 1

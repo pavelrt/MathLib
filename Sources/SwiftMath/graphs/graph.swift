@@ -7,18 +7,52 @@
 
 import Foundation
 
+public protocol Vertex: Codable {
+    var id : Int { get }
+    var edges : [Int] { get }
+}
 
-public protocol DiVertex : Codable {
+public protocol Edge : Codable {
+    var id : Int { get }
+    var vertices : [Int] { get }
+}
+
+public protocol DiVertex : Vertex {
     var id : Int { get }
     var outEdges : [Int] { get set }
     var inEdges : [Int] { get set }
     
 }
 
-public protocol DiEdge : Codable {
+extension DiVertex {
+    public var edges : [Int] {
+        get {
+            var edges = inEdges
+            edges.append(contentsOf: outEdges)
+            return edges
+        }
+    }
+}
+
+public protocol DiEdge : Edge {
     var id : Int { get set }
     var start : Int { get }
     var end : Int { get }
+}
+
+extension DiEdge {
+    public var vertices : [Int] {
+        get {
+            return [start, end]
+        }
+    }
+}
+
+public protocol GraphProt {
+    associatedtype V: Vertex
+    associatedtype E: Edge
+    var vertices: [Int: V] { get }
+    var edges: [Int: E] { get }
 }
 
 public protocol DiGraphProt : Codable {
@@ -26,7 +60,7 @@ public protocol DiGraphProt : Codable {
     associatedtype E: DiEdge
     var vertices: [Int: V] { get }
     var edges: [Int: E] { get }
-    mutating func addWithoutId(edge: E)
+    mutating func add(edge: E)
     mutating func add(vertex: V)
 }
 
@@ -83,7 +117,7 @@ public struct DiGraph<V: DiVertex, E: DiEdge> : DiGraphProt {
         return nil
     }
     
-    mutating public func addWithoutId(edge: E) {
+    mutating public func add(edge: E) {
         var newEdge = edge
         newEdge.id = newEdgeId
         edges[newEdgeId] = newEdge
@@ -98,12 +132,7 @@ public struct DiGraph<V: DiVertex, E: DiEdge> : DiGraphProt {
         vertices[newEdge.start] = newStart
         vertices[newEdge.end] = newEnd
     }
-    
     public mutating func add(vertex: V) {
         self.vertices[vertex.id] = vertex
     }
-    
-
-    
-    
 }
