@@ -11,7 +11,7 @@ final class SwiftMathTests: XCTestCase {
     }
     
     func testDijkstraTestPath() {
-        let (path, start, end) = createPath(length: 1000)
+        let (path, start, end) = createDiPath(length: 1000)
         let (distances, paths) = shortestPathsDijkstra(in: path, sourceId: start.id, pathTo: [end.id], lengths: { _ in return 1.0 })
         
         let distanceToEnd = distances[end.id]!
@@ -21,7 +21,7 @@ final class SwiftMathTests: XCTestCase {
 
     
     func testDijkstraTestCircuit() {
-        let circuit = createCircuit(length: 1000)
+        let circuit = createDiCircuit(length: 1000)
         let v1 = circuit.vertices.first!
         let inEdge = circuit.edges[v1.value.inEdges.first!]
         let v2Id = inEdge!.start
@@ -34,22 +34,22 @@ final class SwiftMathTests: XCTestCase {
     }
     
     func testCreateGrid1() {
-        let (grid, _) = createGrid(dimensions: 10)
+        let (grid, _) = createDiGrid(dimensions: 10)
         XCTAssertEqual(grid.vertices.count, 10)
         XCTAssertEqual(grid.edges.count, 18)
     }
     func testCreateGrid2() {
-        let (grid, _) = createGrid(dimensions: 10, 10)
+        let (grid, _) = createDiGrid(dimensions: 10, 10)
         XCTAssertEqual(grid.vertices.count, 100)
         XCTAssertEqual(grid.edges.count, 18 * 10 + 18 * 10)
     }
     func testCreateGrid3() {
-        let (grid, _) = createGrid(dimensions: 10, 10, 10)
+        let (grid, _) = createDiGrid(dimensions: 10, 10, 10)
         XCTAssertEqual(grid.vertices.count, 1000)
         XCTAssertEqual(grid.edges.count, ((18 * 10 + 18 * 10) * 10) + (10 * 18 * 10))
     }
     func testDijkstraGrid3() {
-        let (grid, indexer) = createGrid(dimensions: 10, 10, 10)
+        let (grid, indexer) = createDiGrid(dimensions: 10, 10, 10)
         let start = indexer([0,0,0])
         let end = indexer([9,9,9])
         let (distances, paths) = shortestPathsDijkstra(in: grid, sourceId: start, pathTo: [end], lengths: { _ in return 1.0 })

@@ -8,12 +8,12 @@
 import Foundation
 
 
-public func createPath(length: Int) -> (DiGraph<AbstractDiVertex, AbstractDiEdge>, AbstractDiVertex, AbstractDiVertex) {
+public func createDiPath(length: Int) -> (DiGraph<DiVertex, AbstractDiEdge>, DiVertex, DiVertex) {
     guard length >= 0 else {
         fatalError("The length of the path has to be positive!")
     }
     
-    var graph = DiGraph<AbstractDiVertex, AbstractDiEdge>()
+    var graph = DiGraph<DiVertex, AbstractDiEdge>()
     let firstVertex = graph.addNewVertex()
     var previousVertex = firstVertex
     
@@ -26,18 +26,18 @@ public func createPath(length: Int) -> (DiGraph<AbstractDiVertex, AbstractDiEdge
 }
 
 
-public func createCircuit(length: Int) -> DiGraph<AbstractDiVertex, AbstractDiEdge> {
+public func createDiCircuit(length: Int) -> DiGraph<DiVertex, AbstractDiEdge> {
     guard length > 0 else {
         fatalError("The length of the path has to be positive!")
     }
     
-    var (path, start, end) = createPath(length: length - 1)
+    var (path, start, end) = createDiPath(length: length - 1)
     _ = path.addEdge(from: end.id, to: start.id)
     return path
 }
 
-public func createGrid(dimensions: Int...) -> (DiGraph<AbstractDiVertex, AbstractDiEdge>, ([Int]) -> Int) {
-    var grid = DiGraph<AbstractDiVertex, AbstractDiEdge>()
+public func createDiGrid(dimensions: Int...) -> (DiGraph<DiVertex, AbstractDiEdge>, ([Int]) -> Int) {
+    var grid = DiGraph<DiVertex, AbstractDiEdge>()
     
     let indexer : ([Int]) -> Int = { (coordinates: [Int]) -> Int  in
         var id = 0
@@ -66,7 +66,7 @@ public func createGrid(dimensions: Int...) -> (DiGraph<AbstractDiVertex, Abstrac
     
     // Create vertices
     loop { coordinates in
-        let vertex = AbstractDiVertex(id: indexer(coordinates))
+        let vertex = DiVertex(id: indexer(coordinates))
         grid.add(vertex: vertex)
     }
     

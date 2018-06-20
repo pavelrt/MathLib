@@ -7,56 +7,26 @@
 
 import Foundation
 
-public protocol Vertex: Codable {
+public protocol AbstractVertex: Codable {
     var id : Int { get }
     var edges : [Int] { get }
 }
 
-public protocol Edge : Codable {
+public protocol AbstractEdge : Codable {
     var id : Int { get }
     var vertices : [Int] { get }
 }
 
-public protocol DiVertex : Vertex {
-    var id : Int { get }
-    var outEdges : [Int] { get set }
-    var inEdges : [Int] { get set }
-    
-}
-
-extension DiVertex {
-    public var edges : [Int] {
-        get {
-            var edges = inEdges
-            edges.append(contentsOf: outEdges)
-            return edges
-        }
-    }
-}
-
-public protocol DiEdge : Edge {
-    var id : Int { get set }
-    var start : Int { get }
-    var end : Int { get }
-}
-
-extension DiEdge {
-    public var vertices : [Int] {
-        get {
-            return [start, end]
-        }
-    }
-}
 
 public protocol GraphProt {
-    associatedtype V: Vertex
-    associatedtype E: Edge
+    associatedtype V: AbstractVertex
+    associatedtype E: AbstractEdge
     var vertices: [Int: V] { get }
     var edges: [Int: E] { get }
 }
 
 public protocol DiGraphProt : Codable {
-    associatedtype V: DiVertex
+    associatedtype V: AbstractDiVertex
     associatedtype E: DiEdge
     var vertices: [Int: V] { get }
     var edges: [Int: E] { get }
@@ -64,7 +34,7 @@ public protocol DiGraphProt : Codable {
     mutating func add(vertex: V)
 }
 
-public struct DiGraph<V: DiVertex, E: DiEdge> : DiGraphProt {
+public struct DiGraph<V: AbstractDiVertex, E: DiEdge> : DiGraphProt {
     public init() {
         self.vertices = [:]
         self.edges = [:]
