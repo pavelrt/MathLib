@@ -45,3 +45,36 @@ public struct Matrix {
         return result
     }
 }
+
+extension Matrix {
+    public func applyElementwise(function: (Double) -> Double) -> Matrix {
+        let newGrid = self.grid.map(function)
+        return Matrix(rows: self.rows, columns: self.columns, grid: newGrid)
+    }
+    
+    public static prefix func - (matrix: Matrix) -> Matrix {
+        return matrix.applyElementwise { -$0 }
+    }
+    
+    public static func * (lhs: Double, rhs: Matrix) -> Matrix {
+        return rhs.applyElementwise { lhs * $0 }
+    }
+}
+
+extension Matrix : CustomStringConvertible {
+    public var description: String {
+        var desc = ""
+        for row in 0..<rows {
+            for column in 0..<columns {
+                let f = "5.2"
+                let valStr = String(format: "%\(f)f", self[row, column])
+                desc += valStr + " "
+            }
+            desc += "\n"
+        }
+        return desc
+    }
+    
+    
+}
+
