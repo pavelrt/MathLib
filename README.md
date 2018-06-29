@@ -1,3 +1,3 @@
-# SwiftMath
+# MathLib
 
-A description of this package.
+A simple math library. Implements graphs, directed graphs and matrices. 
