@@ -61,6 +61,30 @@ extension Matrix {
     }
 }
 
+extension Matrix {
+    public func appendBellow(matrix: Matrix) -> Matrix {
+        guard self.columns == matrix.columns else {
+            fatalError("Cannot append two matrices that have different number of rows")
+        }
+        var newGrid = self.grid
+        newGrid.append(contentsOf: matrix.grid)
+        return Matrix(rows: self.rows + matrix.rows, columns: self.columns, grid: newGrid)
+    }
+    public func appendRight(matrix: Matrix) -> Matrix {
+        guard self.rows == matrix.rows else {
+            fatalError("Cannot append two matrices that have different number of colums")
+
+        }
+        var newMatrix = Matrix(rows: self.rows, columns: self.columns + matrix.columns)
+        for column in 0..<newMatrix.columns {
+            for row in 0..<newMatrix.rows {
+                newMatrix[row,column] = column < self.columns ? self[row,column] : matrix[row, column - self.columns]
+            }
+        }
+        return newMatrix
+    }
+}
+
 extension Matrix : CustomStringConvertible {
     public var description: String {
         var desc = ""
