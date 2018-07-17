@@ -7,7 +7,7 @@
 
 import Foundation
 
-
+// FIXME: Write tests for this function. It probably contains a bug.
 public func subsets<T: Hashable>(of set: Set<T>, size: Int) -> Set<Set<T>> {
     if size == 0 {
         return [Set<T>()]

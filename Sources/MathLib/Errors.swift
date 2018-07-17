@@ -7,6 +7,6 @@
 
 import Foundation
 
-struct SwiftMathError: Error {
+struct MathLibError: Error {
     let message : String
 }
