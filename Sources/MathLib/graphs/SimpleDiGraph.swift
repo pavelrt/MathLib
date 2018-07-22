@@ -18,7 +18,7 @@ public struct DiVertex : AbstractDiVertex {
     public var inEdges: [Int]
 }
 
-public struct AbstractDiEdge : DiEdge{
+public struct DiEdge : AbstractDiEdge{
     public init(id: Int, start from: Int, end to: Int) {
         self.start = from
         self.end = to
@@ -30,7 +30,7 @@ public struct AbstractDiEdge : DiEdge{
 }
 
 // FIXME: Optimize the methods in this structure.
-public struct DiGraph<V: AbstractDiVertex, E: DiEdge> : DiGraphProt {
+public struct DiGraph<V: AbstractDiVertex, E: AbstractDiEdge> : DiGraphProt {
     public init() {
         self.vertices = [:]
         self.edges = [:]
@@ -134,7 +134,7 @@ public struct DiGraph<V: AbstractDiVertex, E: DiEdge> : DiGraphProt {
 
 
 
-extension DiGraph where DiGraph.V == DiVertex, DiGraph.E == AbstractDiEdge {
+extension DiGraph where DiGraph.V == DiVertex, DiGraph.E == DiEdge {
     public mutating func addNewVertex() -> V {
         let vertexId = self.newVertexId
         self.newVertexId += 1

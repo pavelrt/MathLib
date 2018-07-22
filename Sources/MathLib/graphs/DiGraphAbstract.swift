@@ -9,7 +9,7 @@ import Foundation
 
 public protocol DiGraphProt : Codable {
     associatedtype V: AbstractDiVertex
-    associatedtype E: DiEdge
+    associatedtype E: AbstractDiEdge
     var vertices: [Int: V] { get }
     var edges: [Int: E] { get }
     mutating func add(edge: E)
@@ -39,13 +39,13 @@ extension AbstractDiVertex {
     }
 }
 
-public protocol DiEdge : AbstractEdge {
+public protocol AbstractDiEdge : AbstractEdge {
     var id : Int { get set }
     var start : Int { get }
     var end : Int { get }
 }
 
-extension DiEdge {
+extension AbstractDiEdge {
     public var vertices : [Int] {
         get {
             return [start, end]
