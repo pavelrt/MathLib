@@ -34,5 +34,11 @@ public func delaunayEdges<P: Point2D>(points: [P]) -> [DelaunayEdge<P>] {
     for triangle in triangles {
         edges = edges.union(Set(triangle.edges))
     }
-    return Array(edges)
+    //FIXME: There is some strange swift 4.1 bug when we use "Array(edges)". Try again for swift 4.2. or send bug report. Fails in generating game with 17 UAVs.
+    var a = [DelaunayEdge<P>]()
+    a.reserveCapacity(edges.count)
+    for e in edges {
+        a.append(e)
+    }
+    return a
 }

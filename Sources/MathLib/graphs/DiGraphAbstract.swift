@@ -7,7 +7,7 @@
 
 import Foundation
 
-public protocol DiGraphProt : Codable {
+public protocol AbstractDiGraph : Codable {
     associatedtype V: AbstractDiVertex
     associatedtype E: AbstractDiEdge
     var vertices: [Int: V] { get }
@@ -16,7 +16,16 @@ public protocol DiGraphProt : Codable {
     mutating func add(vertex: V)
 }
 
-
+extension AbstractDiGraph {
+    public func outgoingNeighborsIds(of vertexId: Int) -> [Int] {
+        let vertex = vertices[vertexId]!
+        return vertex.outEdges.map { edges[$0]!.end }
+    }
+    public func incomingNeighborsIds(of vertexId: Int) -> [Int] {
+        let vertex = vertices[vertexId]!
+        return vertex.inEdges.map { edges[$0]!.start }
+    }
+}
 
 public protocol AbstractDiVertex : AbstractVertex {
     var id : Int { get }

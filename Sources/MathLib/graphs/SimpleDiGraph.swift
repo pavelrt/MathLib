@@ -30,7 +30,7 @@ public struct DiEdge : AbstractDiEdge{
 }
 
 // FIXME: Optimize the methods in this structure.
-public struct DiGraph<V: AbstractDiVertex, E: AbstractDiEdge> : DiGraphProt {
+public struct DiGraph<V: AbstractDiVertex, E: AbstractDiEdge> : AbstractDiGraph {
     public init() {
         self.vertices = [:]
         self.edges = [:]

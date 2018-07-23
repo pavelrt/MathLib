@@ -24,7 +24,7 @@ fileprivate struct DistanceVertexId : Comparable {
 /// - Returns:
 ///     - distances: The lengths of the shortest paths to all reachable vertices.
 ///     - paths: The paths to the vertices specified by the parameter pathTo. Each path is sequence ov vertices (ids).
-public func shortestPathsDijkstra<G: DiGraphProt>(in graph: G, sourceId: Int, pathTo: [Int], lengths: (Int) -> Double) -> (distances: [Int: Double], paths: [Int:[Int]]) {
+public func shortestPathsDijkstra<G: AbstractDiGraph>(in graph: G, sourceId: Int, pathTo: [Int], lengths: (Int) -> Double) -> (distances: [Int: Double], paths: [Int:[Int]]) {
     
     var finishedVertices = Set<Int>()
     var distances = [Int:Double]()

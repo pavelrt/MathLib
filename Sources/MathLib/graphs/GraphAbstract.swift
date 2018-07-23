@@ -18,7 +18,7 @@ public protocol AbstractEdge : Codable {
 }
 
 
-public protocol GraphProt {
+public protocol AbstractGraph {
     associatedtype V: AbstractVertex
     associatedtype E: AbstractEdge
     var vertices: [Int: V] { get }
