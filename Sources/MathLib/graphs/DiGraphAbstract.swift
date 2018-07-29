@@ -25,6 +25,29 @@ extension AbstractDiGraph {
         let vertex = vertices[vertexId]!
         return vertex.inEdges.map { edges[$0]!.start }
     }
+    public func findEdge(from start: V, to end: V) -> [E] {
+        return start.outEdges.map { ($0, edges[$0]!.end) } .filter { $0.1 == end.id } .map { edges[$0.0]! }
+        
+//        for edgeId in start.outEdges { // Maybe improve the speed by using some hashmap
+//
+//            let edge = edges[edgeId]!
+//            if edge.end == end.id {
+//                return edge
+//            }
+//        }
+//        return nil
+    }
+    public var multiEdges : [[Int]] {
+        
+        var multiEdges = [[Int]]()
+        for (_, vertex) in vertices {
+            let groups = Dictionary(grouping: vertex.outEdges.map {($0, edges[$0]!.end)}, by: { $0.1 })
+            let duplicateGroups = groups.filter {$0.value.count > 1}
+            duplicateGroups.forEach { multiEdges.append($0.value.map {$0.0} )
+            }
+        }
+        return multiEdges
+    }
 }
 
 public protocol AbstractDiVertex : AbstractVertex {

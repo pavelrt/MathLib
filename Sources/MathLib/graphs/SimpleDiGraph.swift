@@ -49,7 +49,9 @@ public struct DiGraph<V: AbstractDiVertex, E: AbstractDiEdge> : AbstractDiGraph 
         self.edges = [:]
         self.newEdgeId = 1
         self.newVertexId = 1
-        for vertex in vertices {
+        for var vertex in vertices {
+            vertex.inEdges = []
+            vertex.outEdges = []
             self.vertices[vertex.id] = vertex
             self.newVertexId = max(self.newVertexId, vertex.id + 1)
         }
@@ -86,28 +88,20 @@ public struct DiGraph<V: AbstractDiVertex, E: AbstractDiEdge> : AbstractDiGraph 
         edges.removeValue(forKey: id)
     }
     
-    public func findEge(from start: Int, to end: Int) -> E? {
+    public func findEge(from start: Int, to end: Int) -> [E] {
         if let startVertex = vertices[start], let endVertex = vertices[end] {
             return findEdge(from: startVertex, to: endVertex)
         } else {
-            return nil
+            return []
         }
         
     }
     
     public func connected(from start: Int, to end: Int) -> Bool {
-        return findEge(from: start, to: end) != nil
+        return !findEge(from: start, to: end).isEmpty
     }
     
-    public func findEdge(from start: V, to end: V) -> E? {
-        for edgeId in start.outEdges { // Maybe improve the speed by using some hashmap
-            let edge = edges[edgeId]!
-            if edge.end == end.id {
-                return edge
-            }
-        }
-        return nil
-    }
+    
     
     mutating public func add(edge: E) {
         var newEdge = edge
