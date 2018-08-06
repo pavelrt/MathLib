@@ -1,14 +1,7 @@
 import XCTest
 @testable import MathLib
 
-final class SwiftMathTests: XCTestCase {
-    
-    func testExample() {
-        // This is an example of a functional test case.
-        // Use XCTAssert and related functions to verify your tests produce the correct
-        // results.
-        XCTAssertEqual(SwiftMath().text, "Hello, World!")
-    }
+final class MathLibTests: XCTestCase {
     
     func testDijkstraTestPath() {
         let (path, start, end) = createDiPath(length: 1000)
@@ -16,7 +9,7 @@ final class SwiftMathTests: XCTestCase {
         
         let distanceToEnd = distances[end.id]!
         XCTAssertEqual(distanceToEnd, 1000.0)
-        XCTAssertEqual(paths[end.id]!.count, 1000)
+        XCTAssertEqual(paths[end.id]!.count, 1001) // Number of vertices on the path
     }
 
     
@@ -30,7 +23,7 @@ final class SwiftMathTests: XCTestCase {
         
         let distanceToEnd = distances[v2Id]!
         XCTAssertEqual(distanceToEnd, 999.0)
-        XCTAssertEqual(paths[v2Id]!.count, 999)
+        XCTAssertEqual(paths[v2Id]!.count, 1000) // Number of vertices on the path
     }
     
     func testCreateGrid1() {
@@ -55,13 +48,17 @@ final class SwiftMathTests: XCTestCase {
         let (distances, paths) = shortestPathsDijkstra(in: grid, sourceId: start, pathTo: [end], lengths: { _ in return 1.0 })
         let distanceToEnd = distances[end]!
         XCTAssertEqual(distanceToEnd, 3 * 9.0)
-        XCTAssertEqual(paths[end]!.count, 3 * 9)
+        XCTAssertEqual(paths[end]!.count, 3 * 9 + 1) // Number of vertices on the path
     }
     
     
 
     static var allTests = [
-        ("testExample", testExample),
         ("testDijkstraTestPath", testDijkstraTestPath),
+        ("testDijkstraTestCircuit", testDijkstraTestCircuit),
+        ("testCreateGrid1", testCreateGrid1),
+        ("testCreateGrid2", testCreateGrid2),
+        ("testCreateGrid3", testCreateGrid3),
+        ("testDijkstraGrid3", testDijkstraGrid3),
     ]
 }
