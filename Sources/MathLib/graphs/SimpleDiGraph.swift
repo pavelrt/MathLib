@@ -18,7 +18,7 @@ public struct DiVertex : AbstractDiVertex {
     public var inEdges: [Int]
 }
 
-public struct DiEdge : AbstractDiEdge{
+public struct DiEdge : AbstractDiEdge {
     public init(id: Int, start from: Int, end to: Int) {
         self.start = from
         self.end = to

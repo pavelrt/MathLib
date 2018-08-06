@@ -7,18 +7,18 @@
 
 import Foundation
 
-public protocol AbstractVertex: Codable {
+public protocol AbstractVertex: Hashable, Codable {
     var id : Int { get }
     var edges : [Int] { get }
 }
 
-public protocol AbstractEdge : Codable {
+public protocol AbstractEdge : Hashable, Codable {
     var id : Int { get }
     var vertices : [Int] { get }
 }
 
 
-public protocol AbstractGraph {
+public protocol AbstractGraph : Hashable {
     associatedtype V: AbstractVertex
     associatedtype E: AbstractEdge
     var vertices: [Int: V] { get }

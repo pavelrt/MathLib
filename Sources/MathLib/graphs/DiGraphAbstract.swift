@@ -7,7 +7,7 @@
 
 import Foundation
 
-public protocol AbstractDiGraph : Codable {
+public protocol AbstractDiGraph : Hashable, Codable {
     associatedtype V: AbstractDiVertex
     associatedtype E: AbstractDiEdge
     var vertices: [Int: V] { get }

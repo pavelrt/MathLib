@@ -31,8 +31,13 @@
 /// at the time of initialization.
 public struct PriorityQueue<T: Comparable> {
     
-    fileprivate var heap = [T]()
+    public private(set) var heap = [T]()
     private let ordered: (T, T) -> Bool
+    
+    public init(order: @escaping (T, T) -> Bool, heap: [T] = []) {
+        self.heap = heap
+        self.ordered = order
+    }
     
     public init(ascending: Bool = true, startingValues: [T] = []) {
         self.init(order: ascending ? { $0 > $1 } : { $0 < $1 }, startingValues: startingValues)
@@ -147,6 +152,18 @@ public struct PriorityQueue<T: Comparable> {
             heap.swapAt((index - 1) / 2, index)
             index = (index - 1) / 2
         }
+    }
+}
+
+extension PriorityQueue : Equatable {
+    public static func == (lhs: PriorityQueue<T>, rhs: PriorityQueue<T>) -> Bool {
+        return lhs.heap == rhs.heap
+    }
+}
+
+extension PriorityQueue: Hashable where T : Hashable {
+    public var hashValue: Int {
+        return heap.hashValue
     }
 }
 
