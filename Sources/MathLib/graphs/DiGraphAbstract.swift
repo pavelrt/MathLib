@@ -25,6 +25,11 @@ extension AbstractDiGraph {
         let vertex = vertices[vertexId]!
         return vertex.inEdges.map { edges[$0]!.start }
     }
+    
+    public func findEdge(from start: Int, to end: Int) -> [E] {
+        return findEdge(from: vertices[start]!, to: vertices[end]!)
+    }
+    
     public func findEdge(from start: V, to end: V) -> [E] {
         return start.outEdges.map { ($0, edges[$0]!.end) } .filter { $0.1 == end.id } .map { edges[$0.0]! }
         
