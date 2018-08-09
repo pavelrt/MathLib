@@ -24,41 +24,57 @@ fileprivate struct DistanceVertexId : Comparable {
 /// - Returns:
 ///     - distances: The lengths of the shortest paths to all reachable vertices.
 ///     - paths: The paths to the vertices specified by the parameter pathTo. Each path is sequence ov vertices (ids).
-public func shortestPathsDijkstra<G: AbstractDiGraph>(in graph: G, sourceId: Int, pathTo: [Int], lengths: (Int) -> Double) -> (distances: [Int: Double], paths: [Int:[Int]]) {
+public func shortestPathsDijkstra<G: AbstractDiGraph>(in graph: G, sourceId: Int, pathTo: [Int], lengths: @escaping (Int) -> Double, distanceTo: Int? = nil) -> (distances: [Int: Double], paths: [Int:[Int]]) {
     
     var finishedVertices = Set<Int>()
     var distances = [Int:Double]()
     var edgeToPredecesor = [Int:Int]()
     var heapDistanceVertexId = PriorityQueue<DistanceVertexId>()
     
-    distances[sourceId] = 0.0
-    finishedVertices.insert(sourceId)
-    
-    for edgeId in graph.vertices[sourceId]!.outEdges {
-        let outEdge = graph.edges[edgeId]!
-        let v = outEdge.end
-        let length = lengths(edgeId)
-        distances[v] = length
-        heapDistanceVertexId.push(DistanceVertexId(dist: length, vertexId: v))
-        edgeToPredecesor[v] = edgeId
-    }
-    
-    while let minDistVertex = heapDistanceVertexId.pop() {
-        let vertexId = minDistVertex.vertexId
-        finishedVertices.insert(vertexId)
-        for edgeId in graph.vertices[vertexId]!.outEdges {
+    func computeDistances() {
+        
+        distances[sourceId] = 0.0
+        finishedVertices.insert(sourceId)
+        if let endVertex = distanceTo, sourceId == endVertex {
+            return
+        }
+        
+        for edgeId in graph.vertices[sourceId]!.outEdges {
             let outEdge = graph.edges[edgeId]!
-            let neighbour = outEdge.end
+            let v = outEdge.end
             let length = lengths(edgeId)
-            if !finishedVertices.contains(neighbour) {
-                if distances[vertexId]! + length < distances[neighbour] ?? Double.infinity {
-                    distances[neighbour] = distances[vertexId]! + length
-                    heapDistanceVertexId.push(DistanceVertexId(dist: distances[neighbour]!, vertexId: neighbour))
-                    edgeToPredecesor[neighbour] = edgeId
+            distances[v] = length
+            heapDistanceVertexId.push(DistanceVertexId(dist: length, vertexId: v))
+            edgeToPredecesor[v] = edgeId
+        }
+        
+        while let minDistVertex = heapDistanceVertexId.pop() {
+            let vertexId = minDistVertex.vertexId
+            finishedVertices.insert(vertexId)
+            if let endVertex = distanceTo, vertexId == endVertex {
+                return
+            }
+            for edgeId in graph.vertices[vertexId]!.outEdges {
+                let outEdge = graph.edges[edgeId]!
+                let neighbour = outEdge.end
+                let length = lengths(edgeId)
+                if !finishedVertices.contains(neighbour) {
+                    if distances[vertexId]! + length < distances[neighbour] ?? Double.infinity {
+                        distances[neighbour] = distances[vertexId]! + length
+                        heapDistanceVertexId.push(DistanceVertexId(dist: distances[neighbour]!, vertexId: neighbour))
+                        edgeToPredecesor[neighbour] = edgeId
+                    }
                 }
             }
         }
     }
+    
+    computeDistances()
+    
+    if let endVertex = distanceTo {
+        assert(pathTo.isEmpty || (pathTo.count == 1 && pathTo.first! == endVertex) )
+    }
+    
     // path is a sequence of vertices from sourceId to v in pathTo
     var paths = [Int:[Int]]()
     for v in pathTo {

@@ -10,8 +10,8 @@ import Foundation
 public protocol AbstractDiGraph : Hashable, Codable {
     associatedtype V: AbstractDiVertex
     associatedtype E: AbstractDiEdge
-    var vertices: [Int: V] { get }
-    var edges: [Int: E] { get }
+    var vertices: [Int: V] { get set }
+    var edges: [Int: E] { get set }
     mutating func add(edge: E)
     mutating func add(vertex: V)
 }
@@ -33,14 +33,6 @@ extension AbstractDiGraph {
     public func findEdge(from start: V, to end: V) -> [E] {
         return start.outEdges.map { ($0, edges[$0]!.end) } .filter { $0.1 == end.id } .map { edges[$0.0]! }
         
-//        for edgeId in start.outEdges { // Maybe improve the speed by using some hashmap
-//
-//            let edge = edges[edgeId]!
-//            if edge.end == end.id {
-//                return edge
-//            }
-//        }
-//        return nil
     }
     public var multiEdges : [[Int]] {
         
