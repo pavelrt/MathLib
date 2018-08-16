@@ -24,8 +24,9 @@ fileprivate struct DistanceVertexId : Comparable {
 /// - Returns:
 ///     - distances: The lengths of the shortest paths to all reachable vertices.
 ///     - paths: The paths to the vertices specified by the parameter pathTo. Each path is sequence ov vertices (ids).
-public func shortestPathsDijkstra<G: AbstractDiGraph>(in graph: G, sourceId: Int, pathTo: [Int], lengths: @escaping (Int) -> Double, distanceTo: Int? = nil) -> (distances: [Int: Double], paths: [Int:[Int]]) {
+public func shortestPathsDijkstra<G: AbstractDiGraph>(in graph: G, sourceId: Int, pathTo: [Int], lengths: @escaping (Int) -> Double, distancesTo: Set<Int>? = nil) -> (distances: [Int: Double], paths: [Int:[Int]]) {
     
+    var distancesTo = distancesTo
     var finishedVertices = Set<Int>()
     var distances = [Int:Double]()
     var edgeToPredecesor = [Int:Int]()
@@ -35,7 +36,9 @@ public func shortestPathsDijkstra<G: AbstractDiGraph>(in graph: G, sourceId: Int
         
         distances[sourceId] = 0.0
         finishedVertices.insert(sourceId)
-        if let endVertex = distanceTo, sourceId == endVertex {
+        
+        distancesTo?.remove(sourceId)
+        if distancesTo?.isEmpty ?? false {
             return
         }
         
@@ -51,9 +54,12 @@ public func shortestPathsDijkstra<G: AbstractDiGraph>(in graph: G, sourceId: Int
         while let minDistVertex = heapDistanceVertexId.pop() {
             let vertexId = minDistVertex.vertexId
             finishedVertices.insert(vertexId)
-            if let endVertex = distanceTo, vertexId == endVertex {
+            
+            distancesTo?.remove(vertexId)
+            if distancesTo?.isEmpty ?? false {
                 return
             }
+            
             for edgeId in graph.vertices[vertexId]!.outEdges {
                 let outEdge = graph.edges[edgeId]!
                 let neighbour = outEdge.end
@@ -71,13 +77,10 @@ public func shortestPathsDijkstra<G: AbstractDiGraph>(in graph: G, sourceId: Int
     
     computeDistances()
     
-    if let endVertex = distanceTo {
-        assert(pathTo.isEmpty || (pathTo.count == 1 && pathTo.first! == endVertex) )
-    }
-    
     // path is a sequence of vertices from sourceId to v in pathTo
     var paths = [Int:[Int]]()
     for v in pathTo {
+        assert(distancesTo?.contains(v) ?? true)
         var current = v
         var path = [Int]()
         while let edge = edgeToPredecesor[current] {
