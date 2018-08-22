@@ -10,6 +10,7 @@ import Foundation
 public protocol AbstractVertex: Hashable, Codable {
     var id : Int { get }
     var edges : [Int] { get }
+    var neighbors : [Int] { get }
 }
 
 public protocol AbstractEdge : Hashable, Codable {

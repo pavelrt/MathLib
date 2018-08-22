@@ -8,14 +8,19 @@
 import Foundation
 
 public struct DiVertex : AbstractDiVertex {
+    
     public init(id: Int) {
         self.id = id
         self.outEdges = []
         self.inEdges = []
+        self.outNeighbors = []
+        self.inNeighbors = []
     }
     public let id: Int
     public var outEdges: [Int]
     public var inEdges: [Int]
+    public var outNeighbors: [Int]
+    public var inNeighbors: [Int]
 }
 
 public struct DiEdge : AbstractDiEdge {
@@ -30,7 +35,13 @@ public struct DiEdge : AbstractDiEdge {
 }
 
 // FIXME: Optimize the methods in this structure.
-public struct DiGraph<V: AbstractDiVertex, E: AbstractDiEdge> : AbstractDiGraph {
+public struct DiGraph<V: AbstractDiVertex, E: AbstractDiEdge> : MutableAbstractDiGraph {
+
+    public var vertices: [Int : V]
+    public var edges: [Int : E]
+    public var newEdgeId : Int
+    public var newVertexId : Int
+    
     public init() {
         self.vertices = [:]
         self.edges = [:]
@@ -57,10 +68,18 @@ public struct DiGraph<V: AbstractDiVertex, E: AbstractDiEdge> : AbstractDiGraph 
         }
     }
     
-    public var vertices: [Int : V]
-    public var edges: [Int : E]
-    public var newEdgeId : Int
-    public var newVertexId : Int
+    public var verticesCount: Int {
+        return vertices.count
+    }
+
+    
+    public func vertex(_ id: Int) -> V? {
+        return vertices[id]
+    }
+    
+    public func edge(_ id: Int) -> E? {
+        return edges[id]
+    }
     
     mutating public func delete(vertexWithId id : Int) {
         // Delete edges that connect to the vertex.
@@ -78,11 +97,11 @@ public struct DiGraph<V: AbstractDiVertex, E: AbstractDiEdge> : AbstractDiGraph 
     mutating public func delete(edgeWithId id: Int) {
         let edge = edges[id]!
         var vertex1 = vertices[edge.start]!
-        vertex1.remove(edgeWithId: id)
+        vertex1.remove(edge: edge)
         vertices[edge.start] = vertex1
         
         var vertex2 = vertices[edge.end]!
-        vertex2.remove(edgeWithId: id)
+        vertex2.remove(edge: edge)
         vertices[edge.end] = vertex2
         
         edges.removeValue(forKey: id)
@@ -111,13 +130,16 @@ public struct DiGraph<V: AbstractDiVertex, E: AbstractDiEdge> : AbstractDiGraph 
         var newStart = vertices[newEdge.start]!
         var newEnd = vertices[newEdge.end]!
         newStart.outEdges.append(newEdgeId)
+        newStart.outNeighbors.append(newEdge.end)
         
         newEnd.inEdges.append(newEdgeId)
+        newEnd.inNeighbors.append(newEdge.start)
         
         newEdgeId += 1
         vertices[newEdge.start] = newStart
         vertices[newEdge.end] = newEnd
     }
+    
     public mutating func add(vertex: V) {
         self.vertices[vertex.id] = vertex
         if newVertexId <= vertex.id {
@@ -144,7 +166,9 @@ extension DiGraph where DiGraph.V == DiVertex, DiGraph.E == DiEdge {
         var start = self.vertices[startId]!
         var end = self.vertices[endId]!
         start.outEdges.append(edgeId)
+        start.outNeighbors.append(endId)
         end.inEdges.append(edgeId)
+        end.inNeighbors.append(startId)
         self.vertices[startId] = start
         self.vertices[endId] = end
         return newEdge

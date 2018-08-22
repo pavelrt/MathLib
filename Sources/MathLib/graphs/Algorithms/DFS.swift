@@ -16,15 +16,16 @@ extension AbstractDiGraph {
         visited.insert(startId)
         lifo.append(startId)
         hops[startId] = 0
-        callback(vertices[startId]!)
+        callback(vertex(startId)!)
         
         while let vertexId = lifo.popLast() {
+            let topVertex = vertex(vertexId)!
             if hops[vertexId]! < maxDepth ?? Int.max {
-                for neigborhId in outgoingNeighborsIds(of: vertexId) where !visited.contains(neigborhId) {
+                for neigborhId in topVertex.outNeighbors where !visited.contains(neigborhId) {
                     visited.insert(neigborhId)
                     lifo.append(neigborhId)
                     hops[neigborhId] = hops[vertexId]! + 1
-                    callback(vertices[neigborhId]!)
+                    callback(vertex(neigborhId)!)
                 }
             }
         }
@@ -34,7 +35,7 @@ extension AbstractDiGraph {
         if let startVertex = self.vertices.first?.key {
             var visitedVerticesCnt = 0
             depthFirstSearch(from: startVertex, callback: { _ in visitedVerticesCnt += 1 })
-            return visitedVerticesCnt == vertices.count
+            return visitedVerticesCnt == verticesCount
         } else {
             return true // Empty graph.
         }
