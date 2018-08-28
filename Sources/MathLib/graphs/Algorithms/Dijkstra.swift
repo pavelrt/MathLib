@@ -23,8 +23,8 @@ fileprivate struct DistanceVertexId : Comparable {
 ///     - lengths: A function that takes id of an edge as a parameter and returns the length of the edge.
 /// - Returns:
 ///     - distances: The lengths of the shortest paths to all reachable vertices.
-///     - paths: The paths to the vertices specified by the parameter pathTo. Each path is sequence ov vertices (ids).
-public func shortestPathsDijkstra<G: AbstractDiGraph>(in graph: G, sourceId: Int, pathTo: [Int], lengths: @escaping (Int) -> Double, distancesTo: Set<Int>? = nil) -> (distances: [Int: Double], paths: [Int:[Int]]) {
+///     - paths: The paths to the vertices specified by the parameter pathTo. Each path is sequence of tuples (edgeTo, vertex). So the path is sourceId,(edge,vertex),(edge,vertex)...(edge,destinationVertex).
+public func shortestPathsDijkstra<G: AbstractDiGraph>(in graph: G, sourceId: Int, pathTo: [Int], lengths: @escaping (Int) -> Double, distancesTo: Set<Int>? = nil) -> (distances: [Int: Double], paths: [Int:[(edge: Int, vertex: Int)]]) {
     
     var distancesTo = distancesTo
     var finishedVertices = Set<Int>()
@@ -42,8 +42,8 @@ public func shortestPathsDijkstra<G: AbstractDiGraph>(in graph: G, sourceId: Int
             return
         }
         
-        for edgeId in graph.vertex(sourceId)!.outEdges {
-            let outEdge = graph.edge(edgeId)!
+        for edgeId in graph.diVertex(sourceId)!.outEdges {
+            let outEdge = graph.diEdge(edgeId)!
             let v = outEdge.end
             let length = lengths(edgeId)
             distances[v] = length
@@ -60,8 +60,8 @@ public func shortestPathsDijkstra<G: AbstractDiGraph>(in graph: G, sourceId: Int
                 return
             }
             
-            for edgeId in graph.vertex(vertexId)!.outEdges {
-                let outEdge = graph.edge(edgeId)!
+            for edgeId in graph.diVertex(vertexId)!.outEdges {
+                let outEdge = graph.diEdge(edgeId)!
                 let neighbour = outEdge.end
                 let length = lengths(edgeId)
                 if !finishedVertices.contains(neighbour) {
@@ -78,16 +78,16 @@ public func shortestPathsDijkstra<G: AbstractDiGraph>(in graph: G, sourceId: Int
     computeDistances()
     
     // path is a sequence of vertices from sourceId to v in pathTo
-    var paths = [Int:[Int]]()
+    var paths = [Int:[(edge:Int,vertex:Int)]]()
     for v in pathTo {
         assert(distancesTo?.contains(v) ?? true)
         var current = v
-        var path = [Int]()
+        var path = [(edge:Int,vertex:Int)]()
         while let edge = edgeToPredecesor[current] {
-            path.append(current)
-            current = graph.edge(edge)!.start
+            path.append((edge:edge,vertex:current))
+            current = graph.diEdge(edge)!.start
         }
-        path.append(current)
+        //path.append(current)
         path.reverse()
         paths[v] = path
     }

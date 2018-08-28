@@ -148,7 +148,7 @@ public func createDiGrid(dimensions: Int...) -> (DiGraph<DiVertex, DiEdge>, ([In
     
     // Create edges
     loop { coordinates in
-        let vertex = grid.vertices[indexer(coordinates)]!
+        let vertex = grid.diVertices[indexer(coordinates)]!
         let vertexId = vertex.id
         for dimensionIdx in dimensions.indices {
             let coordinate = coordinates[dimensionIdx]

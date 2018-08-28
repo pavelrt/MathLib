@@ -9,12 +9,14 @@ import Foundation
 
 public func addTransitiveEdges<G: MutableAbstractDiGraph>(graph: G, maxDistance: Double, lengths: @escaping (Int) -> Double, edgeMaker: (Int, Int, Double) -> G.E) -> G {
     var newGraph = graph
-    for vertex1 in graph.vertices.keys {
+    for (vertex1,_) in graph.diVertices {
         let (distances, _) = shortestPathsDijkstra(in: graph, sourceId: vertex1, pathTo: [], lengths: lengths)
-        for vertex2 in graph.vertices.keys {
+        for (vertex2,_) in graph.diVertices {
             if let distance = distances[vertex2], distance <= maxDistance {
                 let newEdge = edgeMaker(vertex1, vertex2, distance)
-                newGraph.add(edge: newEdge)
+                if graph.findEdge(from: vertex1, to: vertex2).isEmpty {
+                    newGraph.add(edge: newEdge)
+                }
             }
         }
     }

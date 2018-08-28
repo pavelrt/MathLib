@@ -37,53 +37,62 @@ public struct DiEdge : AbstractDiEdge {
 // FIXME: Optimize the methods in this structure.
 public struct DiGraph<V: AbstractDiVertex, E: AbstractDiEdge> : MutableAbstractDiGraph {
 
-    public var vertices: [Int : V]
-    public var edges: [Int : E]
+    public var diVertices: [Int : V]
+    public var diEdges: [Int : E]
     public var newEdgeId : Int
     public var newVertexId : Int
     
     public init() {
-        self.vertices = [:]
-        self.edges = [:]
+        self.diVertices = [:]
+        self.diEdges = [:]
         self.newEdgeId = 1
         self.newVertexId = 1
     }
-    public init(vertices: [Int : V], edges: [Int : E] ,newEdgeId : Int, newVertexId : Int) {
-        self.vertices = vertices
-        self.edges = edges
+    public init<G: AbstractDiGraph>(graph: G) where G.V == V, G.E == E {
+        let newVertices = Array(graph.diVertices) // FIXME:
+        self.diVertices = Dictionary<Int,V>(uniqueKeysWithValues: newVertices)
+        let newEdges = Array(graph.diEdges) // FIXME:
+        self.diEdges = Dictionary(uniqueKeysWithValues: newEdges)
+        self.newEdgeId = graph.newEdgeId
+        self.newVertexId = graph.newVertexId
+    }
+    public init(diVertices: [Int : V], diEdges: [Int : E] ,newEdgeId : Int, newVertexId : Int) {
+        self.diVertices = diVertices
+        self.diEdges = diEdges
         self.newVertexId = newVertexId
         self.newEdgeId = newEdgeId
     }
-    public init(isolatedVertices vertices: [V]) {
-        self.vertices = [:]
-        self.vertices.reserveCapacity(vertices.count)
-        self.edges = [:]
+    
+    public init(isolatedVertices diVertices: [V]) {
+        self.diVertices = [:]
+        self.diVertices.reserveCapacity(diVertices.count)
+        self.diEdges = [:]
         self.newEdgeId = 1
         self.newVertexId = 1
-        for var vertex in vertices {
+        for var vertex in diVertices {
             vertex.inEdges = []
             vertex.outEdges = []
-            self.vertices[vertex.id] = vertex
+            self.diVertices[vertex.id] = vertex
             self.newVertexId = max(self.newVertexId, vertex.id + 1)
         }
     }
     
     public var verticesCount: Int {
-        return vertices.count
+        return diVertices.count
     }
 
     
-    public func vertex(_ id: Int) -> V? {
-        return vertices[id]
+    public func diVertex(_ id: Int) -> V? {
+        return diVertices[id]
     }
     
-    public func edge(_ id: Int) -> E? {
-        return edges[id]
+    public func diEdge(_ id: Int) -> E? {
+        return diEdges[id]
     }
     
     mutating public func delete(vertexWithId id : Int) {
         // Delete edges that connect to the vertex.
-        let vertex = vertices[id]!
+        let vertex = diVertices[id]!
         for edgeId in vertex.inEdges {
             delete(edgeWithId: edgeId)
         }
@@ -91,24 +100,24 @@ public struct DiGraph<V: AbstractDiVertex, E: AbstractDiEdge> : MutableAbstractD
             delete(edgeWithId: edgeId)
         }
 
-        vertices.removeValue(forKey: id)
+        diVertices.removeValue(forKey: id)
     }
     
     mutating public func delete(edgeWithId id: Int) {
-        let edge = edges[id]!
-        var vertex1 = vertices[edge.start]!
+        let edge = diEdges[id]!
+        var vertex1 = diVertices[edge.start]!
         vertex1.remove(edge: edge)
-        vertices[edge.start] = vertex1
+        diVertices[edge.start] = vertex1
         
-        var vertex2 = vertices[edge.end]!
+        var vertex2 = diVertices[edge.end]!
         vertex2.remove(edge: edge)
-        vertices[edge.end] = vertex2
+        diVertices[edge.end] = vertex2
         
-        edges.removeValue(forKey: id)
+        diEdges.removeValue(forKey: id)
     }
     
     public func findEge(from start: Int, to end: Int) -> [E] {
-        if let startVertex = vertices[start], let endVertex = vertices[end] {
+        if let startVertex = diVertices[start], let endVertex = diVertices[end] {
             return findEdge(from: startVertex, to: endVertex)
         } else {
             return []
@@ -125,10 +134,10 @@ public struct DiGraph<V: AbstractDiVertex, E: AbstractDiEdge> : MutableAbstractD
     mutating public func add(edge: E) {
         var newEdge = edge
         newEdge.id = newEdgeId
-        edges[newEdgeId] = newEdge
+        diEdges[newEdgeId] = newEdge
         
-        var newStart = vertices[newEdge.start]!
-        var newEnd = vertices[newEdge.end]!
+        var newStart = diVertices[newEdge.start]!
+        var newEnd = diVertices[newEdge.end]!
         newStart.outEdges.append(newEdgeId)
         newStart.outNeighbors.append(newEdge.end)
         
@@ -136,12 +145,12 @@ public struct DiGraph<V: AbstractDiVertex, E: AbstractDiEdge> : MutableAbstractD
         newEnd.inNeighbors.append(newEdge.start)
         
         newEdgeId += 1
-        vertices[newEdge.start] = newStart
-        vertices[newEdge.end] = newEnd
+        diVertices[newEdge.start] = newStart
+        diVertices[newEdge.end] = newEnd
     }
     
     public mutating func add(vertex: V) {
-        self.vertices[vertex.id] = vertex
+        self.diVertices[vertex.id] = vertex
         if newVertexId <= vertex.id {
             newVertexId = vertex.id + 1
         }
@@ -162,15 +171,15 @@ extension DiGraph where DiGraph.V == DiVertex, DiGraph.E == DiEdge {
         let edgeId = self.newEdgeId
         self.newEdgeId += 1
         let newEdge = E(id: edgeId, start: startId, end: endId)
-        self.edges[edgeId] = newEdge
-        var start = self.vertices[startId]!
-        var end = self.vertices[endId]!
+        self.diEdges[edgeId] = newEdge
+        var start = self.diVertices[startId]!
+        var end = self.diVertices[endId]!
         start.outEdges.append(edgeId)
         start.outNeighbors.append(endId)
         end.inEdges.append(edgeId)
         end.inNeighbors.append(startId)
-        self.vertices[startId] = start
-        self.vertices[endId] = end
+        self.diVertices[startId] = start
+        self.diVertices[endId] = end
         return newEdge
     }
 }

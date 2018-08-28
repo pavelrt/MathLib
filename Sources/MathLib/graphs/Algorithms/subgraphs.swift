@@ -31,6 +31,9 @@ extension AbstractDiGraph {
 }
 
 public struct InducedSubDiGraph<G: AbstractDiGraph> : AbstractDiGraph {
+    public typealias VertexCollection = LazyMapCollection<Set<Int>, (key: Int, value: G.V)>
+    public typealias EdgeCollection = LazyMapCollection<LazyMapCollection<LazyFilterCollection<LazyMapCollection<G.EdgeCollection, G.E?>>, G.E>, (key: Int, value: G.E)>
+    
     public typealias V = G.V
     public typealias E = G.E
     
@@ -46,23 +49,23 @@ public struct InducedSubDiGraph<G: AbstractDiGraph> : AbstractDiGraph {
         return inducedVerticesIds.count
     }
     
-    public func vertex(_ id: Int) -> G.V? {
+    public func diVertex(_ id: Int) -> G.V? {
         guard inducedVerticesIds.contains(id) else {
             return nil
         }
-        var vertex = graph.vertex(id)!
+        var vertex = graph.diVertex(id)!
         vertex.outNeighbors = vertex.outNeighbors.filter {inducedVerticesIds.contains($0)}
         vertex.inNeighbors = vertex.inNeighbors.filter {inducedVerticesIds.contains($0)}
-        vertex.outEdges = vertex.outEdges.filter { inducedVerticesIds.contains(graph.edge($0)!.end) }
-        vertex.inEdges = vertex.inEdges.filter { inducedVerticesIds.contains(graph.edge($0)!.start) }
+        vertex.outEdges = vertex.outEdges.filter { inducedVerticesIds.contains(graph.diEdge($0)!.end) }
+        vertex.inEdges = vertex.inEdges.filter { inducedVerticesIds.contains(graph.diEdge($0)!.start) }
         
         return vertex
         
         //FIXME: Add caching
     }
     
-    public func edge(_ id: Int) -> G.E? {
-        if let edge = graph.edge(id), inducedVerticesIds.contains(edge.start), inducedVerticesIds.contains(edge.end) {
+    public func diEdge(_ id: Int) -> G.E? {
+        if let edge = graph.diEdge(id), inducedVerticesIds.contains(edge.start), inducedVerticesIds.contains(edge.end) {
             return edge
         } else {
             return nil
@@ -71,24 +74,19 @@ public struct InducedSubDiGraph<G: AbstractDiGraph> : AbstractDiGraph {
     
 
     
-    public var vertices: [Int : G.V] {
-        get {
-            fatalError() // FIXME:
-        }
-        set {
-            fatalError()
-        }
+    public var diVertices: VertexCollection {
+        return inducedVerticesIds.lazy.map { (key: $0, value: self.diVertex($0)!) }
     }
     
-    public var edges: [Int : G.E] {
-        get {
-            fatalError() // FIXME:
-        }
-        set {
-            fatalError()
-        }
+    public var diEdges: EdgeCollection {
+        return graph.diEdges.lazy.compactMap { self.diEdge($0.key) } .map { (key: $0.id, value: $0) }
     }
- 
+    public var newVertexId: Int {
+        return graph.newVertexId
+    }
     
+    public var newEdgeId: Int {
+        return graph.newEdgeId
+    }
     
 }

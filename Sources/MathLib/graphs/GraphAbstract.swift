@@ -22,8 +22,12 @@ public protocol AbstractEdge : Hashable, Codable {
 public protocol AbstractGraph : Hashable {
     associatedtype V: AbstractVertex
     associatedtype E: AbstractEdge
-    var vertices: [Int: V] { get }
-    var edges: [Int: E] { get }
+    associatedtype VertexCollection : Collection where VertexCollection.Element == (key:Int, value: V)
+    associatedtype EdgeCollection : Collection where EdgeCollection.Element == (key: Int, value: E)
+    func vertex(_ id: Int) -> V?
+    func edge(_ id: Int) -> E?
+    var vertices: VertexCollection { get }
+    var edges: EdgeCollection { get }
 }
 
 

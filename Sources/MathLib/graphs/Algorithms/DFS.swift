@@ -16,23 +16,23 @@ extension AbstractDiGraph {
         visited.insert(startId)
         lifo.append(startId)
         hops[startId] = 0
-        callback(vertex(startId)!)
+        callback(diVertex(startId)!)
         
         while let vertexId = lifo.popLast() {
-            let topVertex = vertex(vertexId)!
+            let topVertex = diVertex(vertexId)!
             if hops[vertexId]! < maxDepth ?? Int.max {
                 for neigborhId in topVertex.outNeighbors where !visited.contains(neigborhId) {
                     visited.insert(neigborhId)
                     lifo.append(neigborhId)
                     hops[neigborhId] = hops[vertexId]! + 1
-                    callback(vertex(neigborhId)!)
+                    callback(diVertex(neigborhId)!)
                 }
             }
         }
     }
     
     public var connected: Bool {
-        if let startVertex = self.vertices.first?.key {
+        if let startVertex = self.diVertices.first?.key {
             var visitedVerticesCnt = 0
             depthFirstSearch(from: startVertex, callback: { _ in visitedVerticesCnt += 1 })
             return visitedVerticesCnt == verticesCount

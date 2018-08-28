@@ -14,18 +14,18 @@ extension AbstractDiGraph {
         visited.insert(startId)
         fifo.enqueue(startId)
         hops[startId] = 0
-        if !callback(vertex(startId)!) {
+        if !callback(diVertex(startId)!) {
             return
         }
         
         while let vertexId = fifo.dequeue() {
-            let firstVertex = vertex(vertexId)!
+            let firstVertex = diVertex(vertexId)!
             if hops[vertexId]! < maxDepth ?? Int.max {
                 for neigborhId in firstVertex.outNeighbors where !visited.contains(neigborhId) {
                     visited.insert(neigborhId)
                     fifo.enqueue(neigborhId)
                     hops[neigborhId] = hops[vertexId]! + 1
-                    if !callback(vertex(neigborhId)!) {
+                    if !callback(diVertex(neigborhId)!) {
                         return
                     }
                 }
