@@ -49,3 +49,24 @@ extension AbstractDiGraph {
         return unvisited.isEmpty && visited
     }
 }
+
+extension AbstractGraph {
+    public var components : [Int: [Int]] {
+        var comps = [Int:[Int]]()
+        var unfinished = Set(vertices.map {$0.key})
+        var componentNumber = 1
+        while !unfinished.isEmpty {
+            let start = unfinished.removeFirst()
+            var component = [Int]()
+            breadthFirstSearch(from: start, callback: { vertex in
+                component.append(vertex.id)
+                unfinished.remove(vertex.id)
+                return true
+            })
+            comps[componentNumber] = component
+            componentNumber += 1
+        }
+        return comps
+    }
+}
+

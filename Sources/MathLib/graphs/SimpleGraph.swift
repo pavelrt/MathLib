@@ -27,8 +27,8 @@ public struct Graph : AbstractGraph {
     public var vertices: [Int : V]
     public var edges: [Int : E]
     
-    var availableVertexId : Int
-    var availableEdgeId : Int
+    public var availableVertexId : Int
+    public var availableEdgeId : Int
     
     public init() {
         self.vertices = [:]

@@ -9,8 +9,8 @@ import Foundation
 
 public protocol AbstractVertex: Hashable, Codable {
     var id : Int { get }
-    var edges : [Int] { get }
-    var neighbors : [Int] { get }
+    var edges : [Int] { get set }
+    var neighbors : [Int] { get set }
 }
 
 public protocol AbstractEdge : Hashable, Codable {
@@ -28,6 +28,8 @@ public protocol AbstractGraph : Hashable {
     func edge(_ id: Int) -> E?
     var vertices: VertexCollection { get }
     var edges: EdgeCollection { get }
+    var availableVertexId : Int { get }
+    var availableEdgeId : Int { get }
 }
 
 

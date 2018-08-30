@@ -81,9 +81,17 @@ extension AbstractDiVertex {
             edges.append(contentsOf: outEdges)
             return edges
         }
+        set {
+            fatalError() // Not nice. FIXME:
+        }
     }
     public var neighbors : [Int] {
-        return outNeighbors + inNeighbors
+        get {
+            return outNeighbors + inNeighbors
+        }
+        set {
+            fatalError() // Not nide. FIXME:
+        }
     }
     mutating public func remove<E: AbstractDiEdge>(edge: E) {
         outEdges = outEdges.filter({ $0 != edge.id })
