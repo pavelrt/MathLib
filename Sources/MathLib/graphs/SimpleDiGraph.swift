@@ -77,6 +77,65 @@ public struct DiGraph<V: AbstractDiVertex, E: AbstractDiEdge> : MutableAbstractD
         }
     }
     
+    // FIXME: Write a test.
+    public init<G: AbstractDiGraph>(graph: G, inducedOn verticesIds: Set<Int>) where G.V == V, G.E == E {
+        
+        let vertices = verticesIds.map {graph.diVertex($0)!}
+        
+        var newEdges = [Int: E]()
+        var newVertices = [Int: V]()
+        
+        for vertex in vertices {
+            var newInEdges = [Int]()
+            for inEdgeId in vertex.inEdges {
+                let inEdge = graph.diEdge(inEdgeId)!
+                if verticesIds.contains(inEdge.start) && verticesIds.contains(inEdge.end) {
+                    newEdges[inEdgeId] = inEdge
+                    newInEdges.append(inEdgeId)
+                }
+            }
+            
+            var newOutEdges = [Int]()
+            for outEdgeId in vertex.outEdges {
+                let outEdge = graph.diEdge(outEdgeId)!
+                if verticesIds.contains(outEdge.start) && verticesIds.contains(outEdge.end) {
+                    newEdges[outEdgeId] = outEdge
+                    newOutEdges.append(outEdgeId)
+                }
+            }
+            
+            let newOutNeighbors = vertex.outNeighbors.filter { verticesIds.contains($0) }
+            let newInNeighbors = vertex.inNeighbors.filter { verticesIds.contains($0) }
+            
+            var vertex = vertex
+            vertex.inEdges = newInEdges
+            vertex.outEdges = newOutEdges
+            vertex.inNeighbors = newInNeighbors
+            vertex.outNeighbors = newOutNeighbors
+            newVertices[vertex.id] = vertex
+        }
+        
+        self.diVertices = newVertices
+        self.diEdges = newEdges
+        self.newEdgeId = graph.newEdgeId
+        self.newVertexId = graph.newVertexId
+        
+//        let newDiEdges = Dictionary(uniqueKeysWithValues: graph.diEdges.filter { vertices.contains($0.value.start) && vertices.contains($0.value.end) })
+//        let newDiVertices = Dictionary(uniqueKeysWithValues: graph.diVertices.filter { vertices.contains($0.key) } .map { vertexIdVertex -> (key: Int, value: V) in
+//            var vertex = vertexIdVertex.value
+//            vertex.outNeighbors = vertex.outNeighbors.filter {vertices.contains($0)}
+//            vertex.inNeighbors = vertex.inNeighbors.filter {vertices.contains($0)}
+//            vertex.outEdges = vertex.outEdges.filter { newDiEdges[$0] != nil }
+//            vertex.inEdges = vertex.inEdges.filter { newDiEdges[$0] != nil }
+//            return (key: vertexIdVertex.key, value: vertex)
+//        })
+//
+//        self.diVertices = newDiVertices
+//        self.diEdges = newDiEdges
+        
+        
+    }
+    
     public var verticesCount: Int {
         return diVertices.count
     }

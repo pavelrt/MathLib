@@ -52,6 +52,76 @@ public struct Graph : AbstractGraph {
         self.availableEdgeId = diGraph.newEdgeId
     }
     
+    public init<G: AbstractGraph>(graph: G, inducedOn verticesIds: Set<Int>) where G.V == V, G.E == E {
+        
+        let vertices = verticesIds.map {graph.vertex($0)!}
+        
+        var newEdges = [Int: E]()
+        var newVertices = [Int: V]()
+        
+        for vertex in vertices {
+            var newVertexEdges = [Int]()
+            for edgeId in vertex.edges {
+                let edge = graph.edge(edgeId)!
+                let edgeVertices = Set(edge.vertices)
+                if edgeVertices.isSubset(of: verticesIds) {
+                    newEdges[edgeId] = edge
+                    newVertexEdges.append(edgeId)
+                }
+            }
+            
+            let newNeighbors = vertex.neighbors.filter { verticesIds.contains($0) }
+            
+            var vertex = vertex
+            vertex.edges = newVertexEdges
+            vertex.neighbors = newNeighbors
+            newVertices[vertex.id] = vertex
+        }
+        
+        self.vertices = newVertices
+        self.edges = newEdges
+        self.availableEdgeId = graph.availableEdgeId
+        self.availableVertexId = graph.availableVertexId
+    }
+    
+    public init<G: AbstractGraph>(graph: G, onlyWithEdges edgesIds: Set<Int>) where G.V == V, G.E == E {
+        let newEdges = Dictionary(uniqueKeysWithValues: edgesIds.map { (key: $0, value: graph.edge($0)!) })
+        
+        var newVerticesIds = Set<Int>()
+        
+        for (_, edge) in newEdges {
+            newVerticesIds = newVerticesIds.union(edge.vertices)
+        }
+        
+        let vertices = newVerticesIds.map {graph.vertex($0)!}
+        
+        var newVertices = [Int: V]()
+        
+        for vertex in vertices {
+            var newVertexEdges = [Int]()
+            var newVertexNeigbors = [Int]()
+            for edgeId in vertex.edges {
+                if let edge = newEdges[edgeId] {
+                    newVertexEdges.append(edgeId)
+                    let edgeNeighbor = edge.vertices.filter { $0 != vertex.id }
+                    newVertexNeigbors.append(contentsOf: edgeNeighbor)
+                }
+                
+            }
+            
+            //let newNeighbors = vertex.neighbors.filter { newVerticesIds.contains($0) }
+            
+            var vertex = vertex
+            vertex.edges = newVertexEdges
+            vertex.neighbors = newVertexNeigbors
+            newVertices[vertex.id] = vertex
+        }
+        self.vertices = newVertices
+        self.edges = newEdges
+        self.availableEdgeId = graph.availableEdgeId
+        self.availableVertexId = graph.availableVertexId
+    }
+    
     public func vertex(_ id: Int) -> V? {
         return vertices[id]
     }

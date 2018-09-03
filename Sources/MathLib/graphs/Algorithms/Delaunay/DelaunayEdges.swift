@@ -7,12 +7,7 @@
 
 import Foundation
 
-public protocol Point2D : Hashable {
-    var x : Double { get }
-    var y : Double { get }
-}
-
-public struct DelaunayEdge<P: Point2D> : Hashable {
+public struct DelaunayEdge<P: Abstract2DPoint> : Hashable {
     public var hashValue: Int {
         get {
             return "\(vertex1)\(vertex2)".hashValue
@@ -27,7 +22,7 @@ public struct DelaunayEdge<P: Point2D> : Hashable {
     public let vertex2: P
 }
 
-public func delaunayEdges<P: Point2D>(points: [P]) -> [DelaunayEdge<P>] {
+public func delaunayEdges<P: Abstract2DPoint>(points: [P]) -> [DelaunayEdge<P>] {
     let vertices = points.map {DelaunayVertex(point: $0)}
     let triangles = delaunayTriangulate(vertices: vertices)
     var edges = Set<DelaunayEdge<P>>()

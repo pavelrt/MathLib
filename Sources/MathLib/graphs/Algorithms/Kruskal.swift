@@ -5,7 +5,7 @@
 //
 //
 
-public func minimumSpanningTreeKruskal<G: AbstractGraph>(graph: G, lengths: (Int) -> Double) -> [Int] {
+public func edgesOfMinimalSpanningTreeKruskal<G: AbstractGraph>(graph: G, lengths: (Int) -> Double) -> [Int] {
     //var cost = 0.0
     
     var edgesInSpanningTree = [Int]()

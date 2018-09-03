@@ -7,7 +7,7 @@
 //
 
 /// Container for a datatype that implements Point2D.
-public struct DelaunayVertex<P: Point2D> {
+public struct DelaunayVertex<P: Abstract2DPoint> {
     init(x: Double, y: Double) {
         self.x = x
         self.y = y
@@ -27,7 +27,7 @@ public struct DelaunayVertex<P: Point2D> {
 
 extension DelaunayVertex: Equatable { }
 
-public func ==<P: Point2D>(lhs: DelaunayVertex<P>, rhs: DelaunayVertex<P>) -> Bool {
+public func ==<P: Abstract2DPoint>(lhs: DelaunayVertex<P>, rhs: DelaunayVertex<P>) -> Bool {
     return lhs.x == rhs.x && lhs.y == rhs.y
 }
 

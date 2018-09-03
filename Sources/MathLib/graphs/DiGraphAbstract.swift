@@ -87,10 +87,10 @@ extension AbstractDiVertex {
     }
     public var neighbors : [Int] {
         get {
-            return outNeighbors + inNeighbors
+            return Array(Set(outNeighbors).union(Set(inNeighbors)))
         }
         set {
-            fatalError() // Not nide. FIXME:
+            fatalError() // Not nice. FIXME:
         }
     }
     mutating public func remove<E: AbstractDiEdge>(edge: E) {

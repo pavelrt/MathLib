@@ -10,7 +10,7 @@ import Foundation
 
 
 /* Generates a supertraingle containing all other triangles */
-fileprivate func supertriangle<P:Point2D>(_ vertices: [DelaunayVertex<P>]) -> [DelaunayVertex<P>] {
+fileprivate func supertriangle<P:Abstract2DPoint>(_ vertices: [DelaunayVertex<P>]) -> [DelaunayVertex<P>] {
     var xmin = Double(Int32.max)
     var ymin = Double(Int32.max)
     var xmax = -Double(Int32.max)
@@ -37,7 +37,7 @@ fileprivate func supertriangle<P:Point2D>(_ vertices: [DelaunayVertex<P>]) -> [D
 }
 
 /* Calculate a circumcircle for a set of 3 vertices */
-fileprivate func circumcircle<P:Point2D>(_ i: DelaunayVertex<P>, j: DelaunayVertex<P>, k: DelaunayVertex<P>) -> Circumcircle<P> {
+fileprivate func circumcircle<P:Abstract2DPoint>(_ i: DelaunayVertex<P>, j: DelaunayVertex<P>, k: DelaunayVertex<P>) -> Circumcircle<P> {
     let x1 = i.x
     let y1 = i.y
     let x2 = j.x
@@ -85,7 +85,7 @@ fileprivate func circumcircle<P:Point2D>(_ i: DelaunayVertex<P>, j: DelaunayVert
     return Circumcircle(vertex1: i, vertex2: j, vertex3: k, x: xc, y: yc, rsqr: rsqr)
 }
 
-fileprivate func dedup<P:Point2D>(_ edges: [DelaunayVertex<P>]) -> [DelaunayVertex<P>] {
+fileprivate func dedup<P:Abstract2DPoint>(_ edges: [DelaunayVertex<P>]) -> [DelaunayVertex<P>] {
     
     var e = edges
     var a: DelaunayVertex<P>?, b: DelaunayVertex<P>?, m: DelaunayVertex<P>?, n: DelaunayVertex<P>?
@@ -115,7 +115,7 @@ fileprivate func dedup<P:Point2D>(_ edges: [DelaunayVertex<P>]) -> [DelaunayVert
     return e
 }
 
-public func delaunayTriangulate<P:Point2D>(vertices: [DelaunayVertex<P>]) -> [Triangle<P>] {
+public func delaunayTriangulate<P:Abstract2DPoint>(vertices: [DelaunayVertex<P>]) -> [Triangle<P>] {
     
     var _vertices = vertices.removeDuplicates()
     
@@ -225,7 +225,7 @@ public func delaunayTriangulate<P:Point2D>(vertices: [DelaunayVertex<P>]) -> [Tr
 
 
 /// Represents a bounding circle for a set of 3 vertices
-internal struct Circumcircle<P:Point2D> {
+internal struct Circumcircle<P:Abstract2DPoint> {
     let vertex1: DelaunayVertex<P>
     let vertex2: DelaunayVertex<P>
     let vertex3: DelaunayVertex<P>

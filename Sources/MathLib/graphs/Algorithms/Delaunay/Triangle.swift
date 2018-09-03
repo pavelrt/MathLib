@@ -7,7 +7,7 @@
 //
 
 /// A simple struct representing 3 vertices
-public struct Triangle<P:Point2D> {
+public struct Triangle<P:Abstract2DPoint> {
     
     public init(vertex1: DelaunayVertex<P>, vertex2: DelaunayVertex<P>, vertex3: DelaunayVertex<P>) {
         self.vertex1 = vertex1
