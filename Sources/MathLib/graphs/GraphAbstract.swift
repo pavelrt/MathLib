@@ -30,6 +30,8 @@ public protocol AbstractGraph : Hashable {
     var edges: EdgeCollection { get }
     var availableVertexId : Int { get }
     var availableEdgeId : Int { get }
+    var numberOfVertices : Int { get }
+    var numberOfEdges : Int { get }
 }
 
 

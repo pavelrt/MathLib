@@ -36,6 +36,7 @@ public struct Graph : AbstractGraph {
         self.availableVertexId = 1
         self.availableEdgeId = 1
     }
+    
     public init<DG: AbstractDiGraph>(diGraph: DG) {
         
 
@@ -120,6 +121,14 @@ public struct Graph : AbstractGraph {
         self.edges = newEdges
         self.availableEdgeId = graph.availableEdgeId
         self.availableVertexId = graph.availableVertexId
+    }
+    
+    public var numberOfVertices : Int {
+        return vertices.count
+    }
+    
+    public var numberOfEdges : Int {
+        return edges.count
     }
     
     public func vertex(_ id: Int) -> V? {

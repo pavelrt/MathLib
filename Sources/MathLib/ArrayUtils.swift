@@ -16,3 +16,50 @@ public func subtractArrays<N:Numeric>(a: [N], b: [N]) -> [N] {
     }
     return result
 }
+
+
+public func allSubsets<E>(of a: [E]) -> [[E]] {
+    var result = [[E]]()
+    result.reserveCapacity(1 << a.count)
+    func add(_ t: [E], idx: Int) {
+        if idx >= a.count {
+            result.append(t)
+        } else {
+            add(t, idx: idx + 1)
+            var t = t
+            t.append(a[idx])
+            add(t, idx: idx + 1)
+        }
+    }
+    add([], idx: 0)
+    return result
+}
+
+public func cartesianProduct<E>(of actions: [Int:[E]]) ->[[(Int,E)]] {
+    //print(actions)
+    var combinations = [[(Int,E)]]()
+    let keys = Array(actions.keys)
+    func generate(keyIdx: Int, combination: [(Int,E)]) {
+        if keyIdx >= keys.count {
+            if !combination.isEmpty {
+                combinations.append(combination)
+            }
+        } else {
+            if actions[keys[keyIdx]]!.isEmpty {
+                generate(keyIdx: keyIdx + 1, combination: combination)
+            } else {
+                for v in actions[keys[keyIdx]]! {
+                    var newCombination = combination
+                    newCombination.append((keys[keyIdx], v))
+                    generate(keyIdx: keyIdx + 1, combination: newCombination)
+                }
+            }
+        }
+    }
+    var initArray = [(Int,E)]()
+    initArray.reserveCapacity(keys.count)
+    generate(keyIdx: 0, combination: initArray)
+    //print("combs")
+    //print(combinations)
+    return combinations
+}

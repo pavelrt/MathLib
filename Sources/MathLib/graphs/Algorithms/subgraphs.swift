@@ -89,14 +89,21 @@ public struct SubEdgeGraph<G: AbstractGraph> : AbstractGraph {
     public var availableEdgeId: Int {
         return graph.availableEdgeId
     }
-    public var verticesCount: Int {
+    public var numberOfVertices: Int {
         return verticesIds.count
     }
+    
+    public var numberOfEdges: Int {
+        return edgeIds.count
+    }
+    
+
     
     
 }
 
 public struct InducedSubGraph<G: AbstractGraph> : AbstractGraph {
+    
     public typealias VertexCollection = LazyMapCollection<Set<Int>, (key: Int, value: G.V)>
     public typealias EdgeCollection = LazyMapCollection<LazyMapCollection<LazyFilterCollection<LazyMapCollection<G.EdgeCollection, G.E?>>, G.E>, (key: Int, value: G.E)>
     
@@ -111,8 +118,12 @@ public struct InducedSubGraph<G: AbstractGraph> : AbstractGraph {
         self.inducedVerticesIds = inducedVerticesIds
     }
     
-    public var verticesCount: Int {
+    public var numberOfVertices: Int {
         return inducedVerticesIds.count
+    }
+    
+    public var numberOfEdges: Int {
+        return vertices.count // FIXME: slow!
     }
     
     public func vertex(_ id: Int) -> G.V? {
