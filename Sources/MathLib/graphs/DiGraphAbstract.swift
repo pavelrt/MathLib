@@ -66,7 +66,7 @@ extension AbstractDiGraph {
     }
 }
 
-public protocol AbstractDiVertex : AbstractVertex {
+public protocol AbstractDiVertex : AbstractVertex, Codable {
     var id : Int { get }
     var outEdges : [Int] { get set }
     var inEdges : [Int] { get set }
@@ -75,19 +75,21 @@ public protocol AbstractDiVertex : AbstractVertex {
 }
 
 extension AbstractDiVertex {
-    public var edges : [Int] {
+//    public var edges : [Int] {
+//        get {
+//            var edges = inEdges
+//            edges.append(contentsOf: outEdges)
+//            return edges
+//        }
+//        set {
+//            fatalError() // Not nice. FIXME:
+//        }
+//    }
+    public var neighbors : [Neighbor] {
         get {
-            var edges = inEdges
-            edges.append(contentsOf: outEdges)
-            return edges
-        }
-        set {
-            fatalError() // Not nice. FIXME:
-        }
-    }
-    public var neighbors : [Int] {
-        get {
-            return Array(Set(outNeighbors).union(Set(inNeighbors)))
+            fatalError()
+            
+            //return Array(Set(outNeighbors).union(Set(inNeighbors)))
         }
         set {
             fatalError() // Not nice. FIXME:
@@ -105,17 +107,18 @@ extension AbstractDiVertex {
     }
 }
 
-public protocol AbstractDiEdge : AbstractEdge {
+public protocol AbstractDiEdge : AbstractEdge, Codable {
     var id : Int { get set }
     var start : Int { get }
     var end : Int { get }
 }
 
 extension AbstractDiEdge {
-    public var vertices : [Int] {
-        get {
-            return [start, end]
-        }
+    public var vertex1 : Int {
+        return min(start, end)
+    }
+    public var vertex2 : Int {
+        return max(start, end)
     }
 }
 

@@ -77,6 +77,42 @@ public struct DiGraph<V: AbstractDiVertex, E: AbstractDiEdge> : MutableAbstractD
         }
     }
     
+    
+    
+    public init<G: AbstractDiGraph>(graph: G, onlyWithEdges edgesIds: Set<Int>, keepAllVertices : Bool) where G.V == V, G.E == E {
+        let newDiEdges = Dictionary(uniqueKeysWithValues: edgesIds.map { (key: $0, value: graph.diEdge($0)!) })
+        
+        let newVerticesIds : Set<Int>
+        if keepAllVertices {
+            newVerticesIds = Set(graph.diVertices.map {$0.key})
+        } else {
+            var verticesIds = Set<Int>()
+            for (_, edge) in newDiEdges {
+                verticesIds.insert(edge.start)
+                verticesIds.insert(edge.end)
+            }
+            newVerticesIds = verticesIds
+        }
+        
+        let diVertices = newVerticesIds.map {graph.diVertex($0)!}
+
+        var newDiVertices = [Int: V]()
+
+        for var diVertex in diVertices {
+            diVertex.outEdges = diVertex.outEdges.filter {edgesIds.contains($0)}
+            diVertex.inEdges = diVertex.inEdges.filter {edgesIds.contains($0)}
+            diVertex.outNeighbors = diVertex.outEdges.map { graph.diEdge($0)!.end }
+            diVertex.inNeighbors = diVertex.inEdges.map { graph.diEdge($0)!.start }
+            newDiVertices[diVertex.id] = diVertex
+        }
+        
+        self.diVertices = newDiVertices
+        self.diEdges = newDiEdges
+        self.newEdgeId = graph.newEdgeId
+        self.newVertexId = graph.newVertexId
+    }
+
+    
     // FIXME: Write a test.
     public init<G: AbstractDiGraph>(graph: G, inducedOn verticesIds: Set<Int>) where G.V == V, G.E == E {
         
@@ -119,21 +155,6 @@ public struct DiGraph<V: AbstractDiVertex, E: AbstractDiEdge> : MutableAbstractD
         self.diEdges = newEdges
         self.newEdgeId = graph.newEdgeId
         self.newVertexId = graph.newVertexId
-        
-//        let newDiEdges = Dictionary(uniqueKeysWithValues: graph.diEdges.filter { vertices.contains($0.value.start) && vertices.contains($0.value.end) })
-//        let newDiVertices = Dictionary(uniqueKeysWithValues: graph.diVertices.filter { vertices.contains($0.key) } .map { vertexIdVertex -> (key: Int, value: V) in
-//            var vertex = vertexIdVertex.value
-//            vertex.outNeighbors = vertex.outNeighbors.filter {vertices.contains($0)}
-//            vertex.inNeighbors = vertex.inNeighbors.filter {vertices.contains($0)}
-//            vertex.outEdges = vertex.outEdges.filter { newDiEdges[$0] != nil }
-//            vertex.inEdges = vertex.inEdges.filter { newDiEdges[$0] != nil }
-//            return (key: vertexIdVertex.key, value: vertex)
-//        })
-//
-//        self.diVertices = newDiVertices
-//        self.diEdges = newDiEdges
-        
-        
     }
     
     public var verticesCount: Int {
@@ -175,7 +196,7 @@ public struct DiGraph<V: AbstractDiVertex, E: AbstractDiEdge> : MutableAbstractD
         diEdges.removeValue(forKey: id)
     }
     
-    public func findEge(from start: Int, to end: Int) -> [E] {
+    public func findEdge(from start: Int, to end: Int) -> [E] {
         if let startVertex = diVertices[start], let endVertex = diVertices[end] {
             return findEdge(from: startVertex, to: endVertex)
         } else {
@@ -185,7 +206,7 @@ public struct DiGraph<V: AbstractDiVertex, E: AbstractDiEdge> : MutableAbstractD
     }
     
     public func connected(from start: Int, to end: Int) -> Bool {
-        return !findEge(from: start, to: end).isEmpty
+        return !findEdge(from: start, to: end).isEmpty
     }
     
     
@@ -196,16 +217,16 @@ public struct DiGraph<V: AbstractDiVertex, E: AbstractDiEdge> : MutableAbstractD
         diEdges[newEdgeId] = newEdge
         
         var newStart = diVertices[newEdge.start]!
-        var newEnd = diVertices[newEdge.end]!
         newStart.outEdges.append(newEdgeId)
         newStart.outNeighbors.append(newEdge.end)
+        diVertices[newEdge.start] = newStart
         
+        var newEnd = diVertices[newEdge.end]!
         newEnd.inEdges.append(newEdgeId)
         newEnd.inNeighbors.append(newEdge.start)
+        diVertices[newEdge.end] = newEnd
         
         newEdgeId += 1
-        diVertices[newEdge.start] = newStart
-        diVertices[newEdge.end] = newEnd
     }
     
     public mutating func add(vertex: V) {

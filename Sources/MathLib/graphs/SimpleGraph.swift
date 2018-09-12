@@ -7,15 +7,24 @@
 
 import Foundation
 
-public struct Vertex : AbstractVertex {
+public struct Vertex : AbstractMutableVertex, Codable {
     public let id: Int
-    public var edges: [Int]
-    public var neighbors: [Int]
+    public private(set) var neighbors: [Neighbor]
+    public mutating func attachEdge(edgeId: Int, neighborId: Int) {
+        neighbors.append(Neighbor(vertexId: neighborId, edgeId: edgeId))
+    }
+    public mutating func removeEdge(id: Int) {
+        neighbors = neighbors.filter {$0.edgeId != id}
+    }
+    public mutating func filterNeighbors(_ isIncluded: (Neighbor) -> Bool) {
+        neighbors = neighbors.filter { isIncluded($0) }
+    }
 }
 
 public struct Edge : AbstractEdge {
     public let id: Int
-    public var vertices: [Int]
+    public let vertex1: Int
+    public let vertex2: Int
 }
 
 public struct Graph : AbstractGraph {
@@ -38,17 +47,21 @@ public struct Graph : AbstractGraph {
     }
     
     public init<DG: AbstractDiGraph>(diGraph: DG) {
-        
-
         var newEdgesIds = Set<Int>()
         var addedEdges = Set<Tuple<Int>>()
         for (edgeId, edge) in diGraph.diEdges where !addedEdges.contains(Tuple(first: min(edge.start,edge.end), second: max(edge.start,edge.end))) {
             newEdgesIds.insert(edgeId)
             addedEdges.insert(Tuple(first: min(edge.start,edge.end), second: max(edge.start,edge.end)))
         }
-        self.vertices = Dictionary(uniqueKeysWithValues: diGraph.diVertices.map { (key: $0.key, value: Vertex(id: $0.value.id, edges: $0.value.edges.filter {newEdgesIds.contains($0)}, neighbors: $0.value.neighbors)) })
+        self.vertices = Dictionary(uniqueKeysWithValues: diGraph.diVertices.map { diVertex -> (Int,Vertex) in
+            let diVertexId = diVertex.key
+            var diEdges = diVertex.value.inEdges
+            diEdges.append(contentsOf: diVertex.value.outEdges)
+            let neighbors = diEdges.filter {newEdgesIds.contains($0)} .map {diGraph.diEdge($0)!} .map {Neighbor(vertexId: $0.start == diVertexId ? $0.end : $0.start, edgeId: $0.id)}
+            return (diVertexId,Vertex(id: diVertexId, neighbors: neighbors))
+            })
         
-        self.edges = Dictionary(uniqueKeysWithValues: newEdgesIds.map { (key: $0, value: Edge(id: $0, vertices: diGraph.diEdge($0)!.vertices)) })
+        self.edges = Dictionary(uniqueKeysWithValues: newEdgesIds.map { (key: $0, value: Edge(id: $0, vertex1: diGraph.diEdge($0)!.vertex1, vertex2: diGraph.diEdge($0)!.vertex2)) })
         self.availableVertexId = diGraph.newVertexId
         self.availableEdgeId = diGraph.newEdgeId
     }
@@ -60,23 +73,12 @@ public struct Graph : AbstractGraph {
         var newEdges = [Int: E]()
         var newVertices = [Int: V]()
         
-        for vertex in vertices {
-            var newVertexEdges = [Int]()
-            for edgeId in vertex.edges {
-                let edge = graph.edge(edgeId)!
-                let edgeVertices = Set(edge.vertices)
-                if edgeVertices.isSubset(of: verticesIds) {
-                    newEdges[edgeId] = edge
-                    newVertexEdges.append(edgeId)
-                }
-            }
-            
-            let newNeighbors = vertex.neighbors.filter { verticesIds.contains($0) }
-            
-            var vertex = vertex
-            vertex.edges = newVertexEdges
-            vertex.neighbors = newNeighbors
+        for var vertex in vertices {
+            vertex.filterNeighbors { verticesIds.contains($0.vertexId) }
             newVertices[vertex.id] = vertex
+            for neighbor in vertex.neighbors {
+                newEdges[neighbor.edgeId] = graph.edge(neighbor.edgeId)!
+            }
         }
         
         self.vertices = newVertices
@@ -91,30 +93,16 @@ public struct Graph : AbstractGraph {
         var newVerticesIds = Set<Int>()
         
         for (_, edge) in newEdges {
-            newVerticesIds = newVerticesIds.union(edge.vertices)
+            newVerticesIds.insert(edge.vertex1)
+            newVerticesIds.insert(edge.vertex2)
         }
         
         let vertices = newVerticesIds.map {graph.vertex($0)!}
         
         var newVertices = [Int: V]()
         
-        for vertex in vertices {
-            var newVertexEdges = [Int]()
-            var newVertexNeigbors = [Int]()
-            for edgeId in vertex.edges {
-                if let edge = newEdges[edgeId] {
-                    newVertexEdges.append(edgeId)
-                    let edgeNeighbor = edge.vertices.filter { $0 != vertex.id }
-                    newVertexNeigbors.append(contentsOf: edgeNeighbor)
-                }
-                
-            }
-            
-            //let newNeighbors = vertex.neighbors.filter { newVerticesIds.contains($0) }
-            
-            var vertex = vertex
-            vertex.edges = newVertexEdges
-            vertex.neighbors = newVertexNeigbors
+        for var vertex in vertices {
+            vertex.filterNeighbors { newVerticesIds.contains($0.vertexId) }
             newVertices[vertex.id] = vertex
         }
         self.vertices = newVertices
@@ -138,5 +126,31 @@ public struct Graph : AbstractGraph {
     public func edge(_ id: Int) -> E? {
         return edges[id]
     }
-   
 }
+
+extension Graph : AbstractMutableGraph {
+    public mutating func add(edge: E) {
+        var vertex1 = vertex(edge.vertex1)!
+        vertex1.attachEdge(edgeId: edge.id, neighborId: edge.vertex2)
+        vertices[vertex1.id] = vertex1
+
+        if edge.vertex1 != edge.vertex2 {
+            var vertex2 = vertex(edge.vertex2)!
+            vertex2.attachEdge(edgeId: edge.id, neighborId: edge.vertex1)
+            vertices[vertex2.id] = vertex2
+        }
+    }
+    public mutating func remove(edge: E) {
+        var vertex1 = vertex(edge.vertex1)!
+        vertex1.removeEdge(id: edge.id)
+        vertices[vertex1.id] = vertex1
+        if edge.vertex1 != edge.vertex2 {
+            var vertex2 = vertex(edge.vertex2)!
+            vertex2.removeEdge(id: edge.id)
+            vertices[vertex2.id] = vertex2
+        }
+        edges.removeValue(forKey: edge.id)
+    }
+}
+
+

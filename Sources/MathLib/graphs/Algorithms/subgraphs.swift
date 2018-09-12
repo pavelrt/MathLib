@@ -30,7 +30,7 @@ extension AbstractDiGraph {
 
 }
 
-public struct SubEdgeGraph<G: AbstractGraph> : AbstractGraph {
+public struct SubEdgeGraph<G: AbstractGraph> : AbstractGraph where G.V : AbstractMutableVertex {
     public typealias V = G.V
     public typealias E = G.E
     public typealias VertexCollection = LazyMapCollection<Set<Int>, (key: Int, value: G.V)>
@@ -46,7 +46,8 @@ public struct SubEdgeGraph<G: AbstractGraph> : AbstractGraph {
         var vertices = Set<Int>()
         for edgeId in edgeIds {
             let edge = graph.edge(edgeId)!
-            vertices = vertices.union(edge.vertices)
+            vertices.insert(edge.vertex1)
+            vertices.insert(edge.vertex2)
         }
         self.verticesIds = vertices
     }
@@ -56,12 +57,8 @@ public struct SubEdgeGraph<G: AbstractGraph> : AbstractGraph {
             return nil
         }
         var vertex = graph.vertex(id)!
-        vertex.edges = vertex.edges.filter { edgeIds.contains($0) }
         
-        vertex.neighbors = vertex.edges.flatMap { (edgeId) -> [Int] in
-            let edge = graph.edge(edgeId)!
-            return edge.vertices.filter { $0 != id }
-        }
+        vertex.filterNeighbors { edgeIds.contains($0.edgeId) }
         
         return vertex
         //FIXME: Add caching
@@ -102,7 +99,7 @@ public struct SubEdgeGraph<G: AbstractGraph> : AbstractGraph {
     
 }
 
-public struct InducedSubGraph<G: AbstractGraph> : AbstractGraph {
+public struct InducedSubGraph<G: AbstractGraph> : AbstractGraph where G.V : AbstractMutableVertex {
     
     public typealias VertexCollection = LazyMapCollection<Set<Int>, (key: Int, value: G.V)>
     public typealias EdgeCollection = LazyMapCollection<LazyMapCollection<LazyFilterCollection<LazyMapCollection<G.EdgeCollection, G.E?>>, G.E>, (key: Int, value: G.E)>
@@ -131,18 +128,15 @@ public struct InducedSubGraph<G: AbstractGraph> : AbstractGraph {
             return nil
         }
         var vertex = graph.vertex(id)!
-        vertex.neighbors = vertex.neighbors.filter {inducedVerticesIds.contains($0)}
-        vertex.edges = vertex.edges.filter { edgeId in
-            let edge = graph.edge(edgeId)!
-            let verticesOfTheEdge = Set(edge.vertices)
-            return verticesOfTheEdge.isSubset(of: inducedVerticesIds)
-        }
+        
+        vertex.filterNeighbors { inducedVerticesIds.contains($0.vertexId)}
+        
         return vertex
         //FIXME: Add caching
     }
     
     public func edge(_ id: Int) -> G.E? {
-        if let edge = graph.edge(id), Set(edge.vertices).isSubset(of: inducedVerticesIds) {
+        if let edge = graph.edge(id), inducedVerticesIds.contains(edge.vertex1), inducedVerticesIds.contains(edge.vertex2) {
             return edge
         } else {
             return nil

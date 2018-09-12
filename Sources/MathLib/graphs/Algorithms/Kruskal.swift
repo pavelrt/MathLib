@@ -18,8 +18,8 @@ public func edgesOfMinimalSpanningTreeKruskal<G: AbstractGraph>(graph: G, length
     
     for edgeId in sortedEdges {
         let edge = graph.edge(edgeId)!
-        let v1 = edge.vertices[0]
-        let v2 = edge.vertices[1]
+        let v1 = edge.vertex1
+        let v2 = edge.vertex2
         if !unionFind.inSameSet(v1, and: v2) {
             //cost += lengths(edgeId)
             edgesInSpanningTree.append(edgeId)

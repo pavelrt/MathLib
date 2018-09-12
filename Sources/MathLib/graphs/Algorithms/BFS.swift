@@ -61,11 +61,11 @@ extension AbstractGraph {
         while let vertexId = fifo.dequeue() {
             let firstVertex = vertex(vertexId)!
             if hops[vertexId]! < maxDepth ?? Int.max {
-                for neigborhId in firstVertex.neighbors where !visited.contains(neigborhId) {
-                    visited.insert(neigborhId)
-                    fifo.enqueue(neigborhId)
-                    hops[neigborhId] = hops[vertexId]! + 1
-                    if !callback(vertex(neigborhId)!) {
+                for neigborh in firstVertex.neighbors where !visited.contains(neigborh.vertexId) {
+                    visited.insert(neigborh.vertexId)
+                    fifo.enqueue(neigborh.vertexId)
+                    hops[neigborh.vertexId] = hops[vertexId]! + 1
+                    if !callback(vertex(neigborh.vertexId)!) {
                         return
                     }
                 }
