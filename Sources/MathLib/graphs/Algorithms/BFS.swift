@@ -47,27 +47,23 @@ extension AbstractDiGraph {
 
 extension AbstractGraph {
     public func breadthFirstSearch(from startId: Int, callback: (V) -> Bool, maxDepth : Int? = nil) {
-        var fifo = Queue<Int>()
-        var visited = Set<Int>()
+        var openSet = Queue<Int>()
+        var closedSet = Set<Int>()
         var hops = [Int:Int]()
         
-        visited.insert(startId)
-        fifo.enqueue(startId)
+        openSet.enqueue(startId)
         hops[startId] = 0
-        if !callback(vertex(startId)!) {
-            return
-        }
         
-        while let vertexId = fifo.dequeue() {
-            let firstVertex = vertex(vertexId)!
-            if hops[vertexId]! < maxDepth ?? Int.max {
-                for neigborh in firstVertex.neighbors where !visited.contains(neigborh.vertexId) {
-                    visited.insert(neigborh.vertexId)
-                    fifo.enqueue(neigborh.vertexId)
-                    hops[neigborh.vertexId] = hops[vertexId]! + 1
-                    if !callback(vertex(neigborh.vertexId)!) {
-                        return
-                    }
+        while let currentVertexId = openSet.dequeue() {
+            let currentVertex = vertex(currentVertexId)!
+            closedSet.insert(currentVertexId)
+            if !callback(currentVertex) {
+                return
+            }
+            if hops[currentVertexId]! < maxDepth ?? Int.max {
+                for neigborh in currentVertex.neighbors where !closedSet.contains(neigborh.vertexId) {
+                    openSet.enqueue(neigborh.vertexId)
+                    hops[neigborh.vertexId] = hops[currentVertexId]! + 1
                 }
             }
         }

@@ -196,6 +196,17 @@ public struct DiGraph<V: AbstractDiVertex, E: AbstractDiEdge> : MutableAbstractD
         diEdges.removeValue(forKey: id)
     }
     
+    public mutating func removeAllEdgesBetween(v1Id: Int, v2Id: Int) {
+        let edges = findEdge(from: v1Id, to: v2Id)
+        for edge in edges {
+            delete(edgeWithId: edge.id)
+        }
+        let reverseEdges = findEdge(from: v2Id, to: v1Id)
+        for edge in reverseEdges {
+            delete(edgeWithId: edge.id)
+        }
+    }
+    
     public func findEdge(from start: Int, to end: Int) -> [E] {
         if let startVertex = diVertices[start], let endVertex = diVertices[end] {
             return findEdge(from: startVertex, to: endVertex)

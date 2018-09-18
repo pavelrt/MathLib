@@ -26,37 +26,21 @@ fileprivate struct DistanceVertexId : Comparable {
 ///     - paths: The paths to the vertices specified by the parameter pathTo. Each path is sequence of tuples (edgeTo, vertex). So the path is sourceId,(edge,vertex),(edge,vertex)...(edge,destinationVertex).
 public func shortestPathsDijkstra<G: AbstractDiGraph>(in graph: G, sourceId: Int, pathTo: [Int], lengths: @escaping (Int) -> Double, distancesTo: Set<Int>? = nil) -> (distances: [Int: Double], paths: [Int:[(edge: Int, vertex: Int)]]) {
     
-    var distancesTo = distancesTo
-    var finishedVertices = Set<Int>()
+    var distancesToSet = distancesTo
+    var closedSed = Set<Int>()
     var distances = [Int:Double]()
     var edgeToPredecesor = [Int:Int]()
-    var heapDistanceVertexId = PriorityQueue<DistanceVertexId>()
+    var openSet = PriorityQueue<DistanceVertexId>()
     
     func computeDistances() {
-        
+        openSet.push(DistanceVertexId(dist: 0.0, vertexId: sourceId))
         distances[sourceId] = 0.0
-        finishedVertices.insert(sourceId)
-        
-        distancesTo?.remove(sourceId)
-        if distancesTo?.isEmpty ?? false {
-            return
-        }
-        
-        for edgeId in graph.diVertex(sourceId)!.outEdges {
-            let outEdge = graph.diEdge(edgeId)!
-            let v = outEdge.end
-            let length = lengths(edgeId)
-            distances[v] = length
-            heapDistanceVertexId.push(DistanceVertexId(dist: length, vertexId: v))
-            edgeToPredecesor[v] = edgeId
-        }
-        
-        while let minDistVertex = heapDistanceVertexId.pop() {
+        while let minDistVertex = openSet.pop() {
             let vertexId = minDistVertex.vertexId
-            finishedVertices.insert(vertexId)
+            closedSed.insert(vertexId)
             
-            distancesTo?.remove(vertexId)
-            if distancesTo?.isEmpty ?? false {
+            distancesToSet?.remove(vertexId)
+            if distancesToSet?.isEmpty ?? false {
                 return
             }
             
@@ -64,10 +48,12 @@ public func shortestPathsDijkstra<G: AbstractDiGraph>(in graph: G, sourceId: Int
                 let outEdge = graph.diEdge(edgeId)!
                 let neighbour = outEdge.end
                 let length = lengths(edgeId)
-                if !finishedVertices.contains(neighbour) {
-                    if distances[vertexId]! + length < distances[neighbour] ?? Double.infinity {
-                        distances[neighbour] = distances[vertexId]! + length
-                        heapDistanceVertexId.push(DistanceVertexId(dist: distances[neighbour]!, vertexId: neighbour))
+                assert(length >= 0.0)
+                if !closedSed.contains(neighbour) {
+                    let newDistance = distances[vertexId]! + length
+                    if newDistance < distances[neighbour] ?? Double.infinity {
+                        distances[neighbour] = newDistance
+                        openSet.push(DistanceVertexId(dist: newDistance, vertexId: neighbour))
                         edgeToPredecesor[neighbour] = edgeId
                     }
                 }
@@ -93,3 +79,64 @@ public func shortestPathsDijkstra<G: AbstractDiGraph>(in graph: G, sourceId: Int
     }
     return (distances: distances, paths: paths)
 }
+
+
+public func shortestPathAStar<G: AbstractDiGraph>(in graph: G, sourceId: Int, pathTo: Int, lengths: @escaping (Int) -> Double, heuristics: @escaping (Int) -> Double) -> (distance: Double?, path: [(edge: Int, vertex: Int)]?) {
+    
+    var closedSet = Set<Int>()
+    var fScore = [Int:Double]()
+    var gScore = [Int:Double]()
+    var edgeToPredecesor = [Int:Int]()
+    var openSet = PriorityQueue<DistanceVertexId>()
+    
+    func computeDistances() {
+        gScore[sourceId] = 0.0
+        let initNodeFScore = heuristics(sourceId)
+        fScore[sourceId] = initNodeFScore
+        openSet.push(DistanceVertexId(dist: initNodeFScore, vertexId: sourceId))
+        while let minFScoreVertex = openSet.pop() {
+            let vertexId = minFScoreVertex.vertexId
+            if vertexId == pathTo {
+                return
+            }
+            closedSet.insert(vertexId)
+            
+            for edgeId in graph.diVertex(vertexId)!.outEdges {
+                let outEdge = graph.diEdge(edgeId)!
+                let neighbour = outEdge.end
+                let length = lengths(edgeId)
+                if !closedSet.contains(neighbour) {
+                    let tentativeGScore = gScore[vertexId]! + length
+                    assert(tentativeGScore >= 0.0)
+                    if tentativeGScore < gScore[neighbour] ?? Double.infinity {
+                        gScore[neighbour] = tentativeGScore
+                        let newFScore = tentativeGScore + heuristics(neighbour)
+                        openSet.push(DistanceVertexId(dist: newFScore, vertexId: neighbour))
+                        edgeToPredecesor[neighbour] = edgeId
+                    }
+                }
+            }
+        }
+    }
+    
+    computeDistances()
+    
+    if let finalCost = gScore[pathTo] {
+        
+        // path is a sequence of vertices from sourceId to v in pathTo
+        var current = pathTo
+        var path = [(edge:Int,vertex:Int)]()
+        while let edge = edgeToPredecesor[current] {
+            path.append((edge:edge,vertex:current))
+            current = graph.diEdge(edge)!.start
+        }
+        //path.append(current)
+        path.reverse()
+        
+        return (distance: finalCost, path: path)
+    } else {
+        return (nil,nil)
+    }
+}
+
+
