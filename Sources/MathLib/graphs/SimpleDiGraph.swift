@@ -8,6 +8,11 @@
 import Foundation
 
 public struct DiVertex : AbstractDiVertex {
+    public let id: Int
+    public var outEdges: [Int]
+    public var inEdges: [Int]
+    public var outNeighbors: [Int]
+    public var inNeighbors: [Int]
     
     public init(id: Int) {
         self.id = id
@@ -16,12 +21,9 @@ public struct DiVertex : AbstractDiVertex {
         self.outNeighbors = []
         self.inNeighbors = []
     }
-    public let id: Int
-    public var outEdges: [Int]
-    public var inEdges: [Int]
-    public var outNeighbors: [Int]
-    public var inNeighbors: [Int]
 }
+
+
 
 public struct DiEdge : AbstractDiEdge {
     public init(id: Int, start from: Int, end to: Int) {
@@ -71,7 +73,9 @@ public struct DiGraph<V: AbstractDiVertex, E: AbstractDiEdge> : MutableAbstractD
         self.newVertexId = 1
         for var vertex in diVertices {
             vertex.inEdges = []
+            vertex.inNeighbors = []
             vertex.outEdges = []
+            vertex.outNeighbors = []
             self.diVertices[vertex.id] = vertex
             self.newVertexId = max(self.newVertexId, vertex.id + 1)
         }
@@ -186,12 +190,18 @@ public struct DiGraph<V: AbstractDiVertex, E: AbstractDiEdge> : MutableAbstractD
     mutating public func delete(edgeWithId id: Int) {
         let edge = diEdges[id]!
         var vertex1 = diVertices[edge.start]!
-        vertex1.remove(edge: edge)
-        diVertices[edge.start] = vertex1
+        vertex1.outEdges = vertex1.outEdges.filter {$0 != id}
+        vertex1.inEdges = vertex1.inEdges.filter {$0 != id}
+        vertex1.outNeighbors = vertex1.outEdges.map {diEdge($0)!.end}
+        vertex1.inNeighbors = vertex1.inEdges.map {diEdge($0)!.start}
+        diVertices[vertex1.id] = vertex1
         
         var vertex2 = diVertices[edge.end]!
-        vertex2.remove(edge: edge)
-        diVertices[edge.end] = vertex2
+        vertex2.outEdges = vertex2.outEdges.filter {$0 != id}
+        vertex2.inEdges = vertex2.inEdges.filter {$0 != id}
+        vertex2.outNeighbors = vertex2.outEdges.map {diEdge($0)!.end}
+        vertex2.inNeighbors = vertex2.inEdges.map {diEdge($0)!.start}
+        diVertices[vertex2.id] = vertex2
         
         diEdges.removeValue(forKey: id)
     }

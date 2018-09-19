@@ -17,14 +17,15 @@ public struct Tuple<T> {
 }
 
 extension Tuple : Equatable where T : Equatable {
-    public static func == (lhs: Tuple<T>, rhs: Tuple<T>) -> Bool {
-        return lhs.first == rhs.first && lhs.second == rhs.second
-    }
+//    public static func == (lhs: Tuple<T>, rhs: Tuple<T>) -> Bool {
+//        return lhs.first == rhs.first && lhs.second == rhs.second
+//    }
 }
 
 extension Tuple : Hashable where T : Hashable {
-    public var hashValue: Int {
-        return first.combineHashValue(with: second.hashValue)
-    }
+//    public var hashValue: Int {
+//        // FIXME: Use hash combininer
+//        return first.combineHashValue(with: second.hashValue)
+//    }
 }
 

@@ -7,6 +7,7 @@
 
 
 #if swift(>=4.2)
+// Use hasher.combine
 #else
 extension Hashable {
     public func combineHashValue(with otherHash: Int) -> Int {
@@ -17,6 +18,7 @@ extension Hashable {
 #endif
 
 #if swift(>=4.2)
+// Array is hashable in swift 4.2
 #else
 extension Array : Hashable where Element : Hashable {
     public var hashValue: Int {

@@ -72,6 +72,7 @@ public protocol AbstractDiVertex : AbstractVertex, Codable {
     var inEdges : [Int] { get set }
     var outNeighbors : [Int] { get set}
     var inNeighbors : [Int] { get set }
+    //mutating func removeEdge(id: Int)
 }
 
 extension AbstractDiVertex {
@@ -95,16 +96,17 @@ extension AbstractDiVertex {
             fatalError() // Not nice. FIXME:
         }
     }
-    mutating public func remove<E: AbstractDiEdge>(edge: E) {
-        outEdges = outEdges.filter({ $0 != edge.id })
-        inEdges = inEdges.filter({ $0 != edge.id })
-        if self.id == edge.start {
-            outNeighbors = outNeighbors.filter { $0 != edge.end}
-        } else {
-            inNeighbors = inNeighbors.filter { $0 != edge.start}
-            assert(self.id == edge.end)
-        }
-    }
+//    @available(*, deprecated)
+//    mutating public func remove<E: AbstractDiEdge>(edge: E) {
+//        outEdges = outEdges.filter({ $0 != edge.id })
+//        inEdges = inEdges.filter({ $0 != edge.id })
+//        if self.id == edge.start {
+//            outNeighbors = outNeighbors.filter { $0 != edge.end}
+//        } else {
+//            inNeighbors = inNeighbors.filter { $0 != edge.start}
+//            assert(self.id == edge.end)
+//        }
+//    }
 }
 
 public protocol AbstractDiEdge : AbstractEdge, Codable {
