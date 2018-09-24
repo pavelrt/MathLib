@@ -7,108 +7,25 @@
 
 import Foundation
 
-public struct Vertex : AbstractMutableVertex, Codable {
-    public let id: Int
-    public private(set) var neighbors: [Neighbor]
-    public mutating func attachEdge(edgeId: Int, neighborId: Int) {
-        neighbors.append(Neighbor(vertexId: neighborId, edgeId: edgeId))
-    }
-    public mutating func removeEdge(id: Int) {
-        neighbors = neighbors.filter {$0.edgeId != id}
-    }
-    public mutating func filterNeighbors(_ isIncluded: (Neighbor) -> Bool) {
-        neighbors = neighbors.filter { isIncluded($0) }
-    }
-}
 
-public struct Edge : AbstractEdge {
-    public let id: Int
-    public let vertex1: Int
-    public let vertex2: Int
-}
-
-public struct Graph : AbstractGraph {
-    public typealias V = Vertex
-    public typealias E = Edge
-    public typealias VertexCollection = [Int:V]
-    public typealias EdgeCollection = [Int:E]
+public struct Graph<V: AbstractVertex, E: AbstractEdge> : AbstractFiniteGraph where V.Index == E.VertexIndex {
+    public typealias VertexCollection = [V.Index:V]
+    public typealias EdgeCollection = [E.Index:E]
+    public typealias NeighborsCollection = [(edge: E, vertex: V)]
     
-    public var vertices: [Int : V]
-    public var edges: [Int : E]
+    public private(set) var vertices: VertexCollection
+    public private(set) var edges: EdgeCollection
+    private var neighbors : [V.Index: [NeighborTuple<V.Index,E.Index>]]
     
-    public var availableVertexId : Int
-    public var availableEdgeId : Int
-    
+    /// Creates an empty graph.
     public init() {
         self.vertices = [:]
         self.edges = [:]
-        self.availableVertexId = 1
-        self.availableEdgeId = 1
+        self.neighbors = [:]
     }
     
-    public init<DG: AbstractDiGraph>(diGraph: DG) {
-        var newEdgesIds = Set<Int>()
-        var addedEdges = Set<Tuple<Int>>()
-        for (edgeId, edge) in diGraph.diEdges where !addedEdges.contains(Tuple(first: min(edge.start,edge.end), second: max(edge.start,edge.end))) {
-            newEdgesIds.insert(edgeId)
-            addedEdges.insert(Tuple(first: min(edge.start,edge.end), second: max(edge.start,edge.end)))
-        }
-        self.vertices = Dictionary(uniqueKeysWithValues: diGraph.diVertices.map { diVertex -> (Int,Vertex) in
-            let diVertexId = diVertex.key
-            var diEdges = diVertex.value.inEdges
-            diEdges.append(contentsOf: diVertex.value.outEdges)
-            let neighbors = diEdges.filter {newEdgesIds.contains($0)} .map {diGraph.diEdge($0)!} .map {Neighbor(vertexId: $0.start == diVertexId ? $0.end : $0.start, edgeId: $0.id)}
-            return (diVertexId,Vertex(id: diVertexId, neighbors: neighbors))
-            })
-        
-        self.edges = Dictionary(uniqueKeysWithValues: newEdgesIds.map { (key: $0, value: Edge(id: $0, vertex1: diGraph.diEdge($0)!.vertex1, vertex2: diGraph.diEdge($0)!.vertex2)) })
-        self.availableVertexId = diGraph.newVertexId
-        self.availableEdgeId = diGraph.newEdgeId
-    }
-    
-    public init<G: AbstractGraph>(graph: G, inducedOn verticesIds: Set<Int>) where G.V == V, G.E == E {
-        
-        let vertices = verticesIds.map {graph.vertex($0)!}
-        
-        var newEdges = [Int: E]()
-        var newVertices = [Int: V]()
-        
-        for var vertex in vertices {
-            vertex.filterNeighbors { verticesIds.contains($0.vertexId) }
-            newVertices[vertex.id] = vertex
-            for neighbor in vertex.neighbors {
-                newEdges[neighbor.edgeId] = graph.edge(neighbor.edgeId)!
-            }
-        }
-        
-        self.vertices = newVertices
-        self.edges = newEdges
-        self.availableEdgeId = graph.availableEdgeId
-        self.availableVertexId = graph.availableVertexId
-    }
-    
-    public init<G: AbstractGraph>(graph: G, onlyWithEdges edgesIds: Set<Int>) where G.V == V, G.E == E {
-        let newEdges = Dictionary(uniqueKeysWithValues: edgesIds.map { (key: $0, value: graph.edge($0)!) })
-        
-        var newVerticesIds = Set<Int>()
-        
-        for (_, edge) in newEdges {
-            newVerticesIds.insert(edge.vertex1)
-            newVerticesIds.insert(edge.vertex2)
-        }
-        
-        let vertices = newVerticesIds.map {graph.vertex($0)!}
-        
-        var newVertices = [Int: V]()
-        
-        for var vertex in vertices {
-            vertex.filterNeighbors { newVerticesIds.contains($0.vertexId) }
-            newVertices[vertex.id] = vertex
-        }
-        self.vertices = newVertices
-        self.edges = newEdges
-        self.availableEdgeId = graph.availableEdgeId
-        self.availableVertexId = graph.availableVertexId
+    public func neighbors(of vertexId: V.Index) -> NeighborsCollection {
+        return (neighbors[vertexId] ?? []).map {(edge: edge($0.edgeId)!, vertex: vertex($0.vertexId)!)}
     }
     
     public var numberOfVertices : Int {
@@ -119,38 +36,204 @@ public struct Graph : AbstractGraph {
         return edges.count
     }
     
-    public func vertex(_ id: Int) -> V? {
+    public func vertex(_ id: V.Index) -> V? {
         return vertices[id]
     }
     
-    public func edge(_ id: Int) -> E? {
+    public func edge(_ id: E.Index) -> E? {
         return edges[id]
+    }
+    
+    
+}
+
+struct NeighborTuple<VertexIndex: Hashable, EdgeIndex: Hashable> : Hashable {
+    public let vertexId : VertexIndex
+    public let edgeId : EdgeIndex
+}
+
+
+
+extension Graph {
+    
+    // Will usualy result in multigraph.
+    public init<DG: AbstractFiniteDiGraph>(diGraph: DG) where DG.V == V, DG.E == E {
+        // , uniquingEdgesWith: (E,E) -> E
+        self.vertices = Dictionary(uniqueKeysWithValues: Array(diGraph.diVertices))
+        self.edges = Dictionary(uniqueKeysWithValues: Array(diGraph.diEdges))
+        self.neighbors = [:]
+        
+        for (vertexId, _) in vertices {
+            let outgoingNeighbors = diGraph.outgoingNeighbors(of: vertexId).map {NeighborTuple(vertexId: $0.vertex.id, edgeId: $0.edge.id)}
+            let incomingNeighbors = diGraph.incomingNeighbors(of: vertexId).map {NeighborTuple(vertexId: $0.vertex.id, edgeId: $0.edge.id)}
+            var vertexNeighbors = outgoingNeighbors
+            vertexNeighbors.append(contentsOf: incomingNeighbors)
+            self.neighbors[vertexId] = vertexNeighbors
+        }
+        
+//        var newEdgesIds = Set<E.Index>()
+//        var addedEdges = Set<Tuple<V.Index>>()
+//
+//        for (edgeId, edge) in diGraph.diEdges {
+//            let oppositeEdge =
+//        }
+//
+//
+//
+//        for (edgeId, edge) in diGraph.diEdges where !addedEdges.contains(Tuple(first: min(edge.start,edge.end), second: max(edge.start,edge.end))) {
+//            newEdgesIds.insert(edgeId)
+//            addedEdges.insert(Tuple(first: min(edge.start,edge.end), second: max(edge.start,edge.end)))
+//        }
+//        self.vertices = Dictionary(uniqueKeysWithValues: diGraph.diVertices.map { diVertex -> (Int,Vertex) in
+//            let diVertexId = diVertex.key
+//            var diEdges = diVertex.value.inEdges
+//            diEdges.append(contentsOf: diVertex.value.outEdges)
+//            let neighbors = diEdges.filter {newEdgesIds.contains($0)} .map {diGraph.diEdge($0)!} .map {NeighborTuple(vertexId: $0.start == diVertexId ? $0.end : $0.start, edgeId: $0.id)}
+//            return (diVertexId,Vertex(id: diVertexId, neighbors: neighbors))
+//            })
+        
+//        self.edges = Dictionary(uniqueKeysWithValues: newEdgesIds.map { (key: $0, value: Edge(id: $0, vertex1Id: diGraph.diEdge($0)!.vertex1, vertex2Id: diGraph.diEdge($0)!.vertex2)) })
+//        self.availableVertexId = diGraph.newVertexId
+//        self.availableEdgeId = diGraph.newEdgeId
+    }
+    
+    public init<G: AbstractFiniteGraph>(graph: G, inducedOn verticesIds: Set<V.Index>) where G.V == V, G.E == E {
+        
+        self.vertices = Dictionary(uniqueKeysWithValues: verticesIds.map { (vertexId: V.Index) -> (V.Index,V) in
+            let vertex = graph.vertex(vertexId)!
+            return (vertex.id, vertex)
+        })
+        self.neighbors = [:]
+        
+        self.edges = [E.Index: E]()
+        
+        for (vertexId, _) in vertices {
+            
+            let vertexNeighbors = graph.neighbors(of: vertexId).filter { verticesIds.contains($0.vertex.id) }
+            for neighbor in vertexNeighbors where edges[neighbor.edge.id] == nil {
+                edges[neighbor.edge.id] = neighbor.edge
+            }
+            neighbors[vertexId] = vertexNeighbors.map { NeighborTuple(vertexId: $0.vertex.id, edgeId: $0.edge.id) }
+            
+//            vertex.filterNeighbors { verticesIds.contains($0.vertexId) }
+//            newVertices[vertex.id] = vertex
+//            newAvailableVertexId = max(newAvailableVertexId, vertex.id + 1)
+//            for neighbor in vertex.neighbors {
+//                newEdges[neighbor.edgeId] = graph.edge(neighbor.edgeId)!
+//                newAvailableEdgeId = max(newAvailableEdgeId, neighbor.edgeId + 1)
+//            }
+        }
+        
+//        self.vertices = newVertices
+//        self.edges = newEdges
+//        self.availableEdgeId = newAvailableEdgeId
+//        self.availableVertexId = newAvailableVertexId
+    }
+    
+    public init<G: AbstractFiniteGraph>(graph: G, onlyWithEdges edgesIds: Set<E.Index>) where G.V == V, G.E == E {
+        
+        
+        self.edges = Dictionary(uniqueKeysWithValues: edgesIds.map { (key: $0, value: graph.edge($0)!) })
+        
+        var newVerticesIds = Set<V.Index>()
+        
+        for (_, edge) in edges {
+            newVerticesIds.insert(edge.vertex1Id)
+            newVerticesIds.insert(edge.vertex2Id)
+        }
+        
+        self.vertices = Dictionary(uniqueKeysWithValues: newVerticesIds.map { ($0, graph.vertex($0)!) })
+        self.neighbors = [:]
+        
+        for (vertexId, _) in vertices {
+            let vertexNeighbors = graph.neighbors(of: vertexId).filter {edgesIds.contains($0.edge.id)}
+            neighbors[vertexId] = vertexNeighbors.map { NeighborTuple(vertexId: $0.vertex.id, edgeId: $0.edge.id) }
+        }
     }
 }
 
 extension Graph : AbstractMutableGraph {
-    public mutating func add(edge: E) {
-        var vertex1 = vertex(edge.vertex1)!
-        vertex1.attachEdge(edgeId: edge.id, neighborId: edge.vertex2)
-        vertices[vertex1.id] = vertex1
-
-        if edge.vertex1 != edge.vertex2 {
-            var vertex2 = vertex(edge.vertex2)!
-            vertex2.attachEdge(edgeId: edge.id, neighborId: edge.vertex1)
-            vertices[vertex2.id] = vertex2
+    public mutating func add(vertex: V) {
+        guard vertices[vertex.id] == nil else {
+            fatalError("Graph already contains a vertex with the same id.")
         }
+        vertices[vertex.id] = vertex
+    }
+    
+    public mutating func remove(vertex: V) {
+        assert(vertices[vertex.id] != nil, "Removing non-existing vertex.")
+        let vertexNeighbors = neighbors(of: vertex.id)
+        for neighbor in vertexNeighbors {
+            remove(edge: neighbor.edge)
+        }
+        vertices.removeValue(forKey: vertex.id)
+    }
+    
+    public mutating func add(edge: E) {
+        guard edges[edge.id] == nil else {
+            fatalError("Graph already contains an edge with the same id.")
+        }
+        attachEdge(to: edge.vertex1Id, edgeId: edge.id, neighborId: edge.vertex2Id)
+        if edge.vertex1Id != edge.vertex2Id {
+            attachEdge(to: edge.vertex2Id, edgeId: edge.id, neighborId: edge.vertex1Id)
+        }
+        edges[edge.id] = edge
     }
     public mutating func remove(edge: E) {
-        var vertex1 = vertex(edge.vertex1)!
-        vertex1.removeEdge(id: edge.id)
-        vertices[vertex1.id] = vertex1
-        if edge.vertex1 != edge.vertex2 {
-            var vertex2 = vertex(edge.vertex2)!
-            vertex2.removeEdge(id: edge.id)
-            vertices[vertex2.id] = vertex2
+        assert(edges[edge.id] != nil, "Removing non-existing edge.")
+        removeEdge(from: edge.vertex1Id, edgeId: edge.id)
+        if edge.vertex1Id != edge.vertex2Id {
+            removeEdge(from: edge.vertex2Id, edgeId: edge.id)
         }
         edges.removeValue(forKey: edge.id)
     }
+    
+    private mutating func attachEdge(to vertexId: V.Index, edgeId: E.Index, neighborId: V.Index) {
+        var vertexNeighbors = neighbors[vertexId] ?? []
+        vertexNeighbors.append(NeighborTuple(vertexId: neighborId, edgeId: edgeId))
+        neighbors[vertexId] = vertexNeighbors
+    }
+    private mutating func removeEdge(from vertexId: V.Index, edgeId: E.Index) {
+        let vertexNeighbors = neighbors[vertexId]!.filter {$0.edgeId != edgeId}
+        neighbors[vertexId] = vertexNeighbors
+    }
+    private mutating func filterNeighbors(of vertexId: V.Index, _ isIncluded: (NeighborTuple<V.Index, E.Index>) -> Bool) {
+        let vertexNeighbors = (neighbors[vertexId] ?? []).filter { isIncluded($0) }
+        neighbors[vertexId] = vertexNeighbors
+    }
+}
+
+public typealias IntGraph = Graph<IntVertex,IntEdge>
+
+public struct IntVertex : AbstractVertex {
+    public typealias Index = Int
+    public let id: Index
+}
+
+public struct IntEdge : AbstractEdge {
+    public typealias Index = Int
+    public typealias VertexIndex = Int
+    
+    public let id: Index
+    public var vertices: TwoSet<Int>
 }
 
 
+
+
+
+extension Graph: Equatable where V: Equatable, E: Equatable {
+    
+}
+
+extension Graph : Hashable where V: Hashable, E:Hashable {
+    
+}
+
+extension NeighborTuple : Codable where VertexIndex : Codable, EdgeIndex : Codable {
+    
+}
+
+extension Graph : Codable where V: Codable, E: Codable, V.Index : Codable, E.Index: Codable {
+    
+}

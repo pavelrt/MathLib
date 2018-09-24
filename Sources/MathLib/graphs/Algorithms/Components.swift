@@ -8,9 +8,9 @@
 import Foundation
 
 
-extension AbstractDiGraph {
-    public func findAllVerticesInTheSameComponent(as vertexId: Int) -> Set<Int> {
-        var component = [Int]()
+extension AbstractFiniteDiGraph {
+    public func findAllVerticesInTheSameComponent(as vertexId: V.Index) -> Set<V.Index> {
+        var component = [V.Index]()
         breadthFirstSearch(from: vertexId, callback: { (vertex) -> Bool in
             _ = component.append(vertex.id)
             return true
@@ -18,7 +18,7 @@ extension AbstractDiGraph {
         return Set(component)
     }
     
-    public func areInTheSameComponent(vertices: [Int]) -> Bool {
+    public func areInTheSameComponent(vertices: [V.Index]) -> Bool {
         guard vertices.count > 1 else {
             return true
         }
@@ -31,7 +31,7 @@ extension AbstractDiGraph {
         return unvisited.isEmpty
     }
     
-    public func areInTheSameCompanentAndContainAtLeastOne(vertices: [Int], atLeastOneVertices: [Int]) -> Bool {
+    public func areInTheSameCompanentAndContainAtLeastOne(vertices: [V.Index], atLeastOneVertices: [V.Index]) -> Bool {
         guard vertices.count > 1 else {
             return true
         }
@@ -50,14 +50,14 @@ extension AbstractDiGraph {
     }
 }
 
-extension AbstractGraph {
-    public var components : [Int: [Int]] {
-        var comps = [Int:[Int]]()
+extension AbstractFiniteGraph {
+    public var components : [Int: [V.Index]] {
+        var comps = [Int:[V.Index]]()
         var unfinished = Set(vertices.map {$0.key})
         var componentNumber = 1
         while !unfinished.isEmpty {
             let start = unfinished.removeFirst()
-            var component = [Int]()
+            var component = [V.Index]()
             breadthFirstSearch(from: start, callback: { vertex in
                 component.append(vertex.id)
                 unfinished.remove(vertex.id)

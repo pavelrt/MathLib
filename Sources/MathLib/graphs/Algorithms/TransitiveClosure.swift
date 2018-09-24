@@ -7,7 +7,7 @@
 
 import Foundation
 
-public func addTransitiveEdges<G: MutableAbstractDiGraph>(graph: G, maxDistance: Double, lengths: @escaping (Int) -> Double, edgeMaker: (Int, Int, Double) -> G.E) -> G {
+public func addTransitiveEdges<G: AbstractMutableDiGraph>(graph: G, maxDistance: Double, lengths: @escaping (G.E.Index) -> Double, edgeMaker: (G.V.Index, G.V.Index, Double) -> G.E) -> G {
     var newGraph = graph
     for (vertex1,_) in graph.diVertices {
         let (distances, _) = shortestPathsDijkstra(in: graph, sourceId: vertex1, pathTo: [], lengths: lengths)

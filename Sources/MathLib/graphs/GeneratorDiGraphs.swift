@@ -8,31 +8,38 @@
 import Foundation
 
 
-public func createDiPath(length: Int) -> (DiGraph<DiVertex, DiEdge>, DiVertex, DiVertex) {
+public func createDiPath(length: Int) -> (IntDiGraph, IntVertex, IntVertex) {
     guard length >= 0 else {
         fatalError("The length of the path has to be positive!")
     }
     
-    var graph = DiGraph<DiVertex, DiEdge>()
-    let firstVertex = graph.addNewVertex()
+    var vertexIdGenerator = IntIndexGenerator()
+    var edgeIdGenerator = IntIndexGenerator()
+    
+    var graph = DiGraph<IntVertex, IntDiEdge>()
+    let firstVertex = graph.addNewVertex(indexGenerator: &vertexIdGenerator)
     var previousVertex = firstVertex
     
     for _ in 1...length {
-        let nextVertex = graph.addNewVertex()
-        _ = graph.addEdge(from: previousVertex.id, to: nextVertex.id)
+        let nextVertex = graph.addNewVertex(indexGenerator: &vertexIdGenerator)
+        _ = graph.addEdge(from: previousVertex.id, to: nextVertex.id, indexGenerator: &edgeIdGenerator)
         previousVertex = nextVertex
     }
     return (graph, firstVertex, previousVertex)
 }
 
 
-public func createDiCircuit(length: Int) -> DiGraph<DiVertex, DiEdge> {
+public func createDiCircuit(length: Int) -> IntDiGraph {
     guard length > 0 else {
         fatalError("The length of the path has to be positive!")
     }
     
     var (path, start, end) = createDiPath(length: length - 1)
-    _ = path.addEdge(from: end.id, to: start.id)
+    
+    var edgeIdGenerator = IntIndexGenerator()
+    edgeIdGenerator.used(usedIndices: path.diEdges.map {$0.key})
+    
+    _ = path.addEdge(from: end.id, to: start.id, indexGenerator: &edgeIdGenerator)
     return path
 }
 
@@ -40,7 +47,7 @@ public func createDiCircuit(length: Int) -> DiGraph<DiVertex, DiEdge> {
 //    
 //}
 //
-public func createDiGrid<V: AbstractDiVertex, E: AbstractDiEdge>(dimensions: [Int], vertexMaker: @escaping ([Int], Int) -> V, edgeMaker: @escaping ([Int], Int, [Int], Int) -> E, initialGraph: DiGraph<V,E> ) -> (DiGraph<V,E>, ([Int]) -> Int) {
+public func createDiGrid<V: AbstractVertex, E: AbstractDiEdge>(dimensions: [Int], vertexMaker: @escaping ([Int], Int) -> V, edgeMaker: @escaping ([Int], Int, [Int], Int) -> E, initialGraph: DiGraph<V,E> ) -> (DiGraph<V,E>, ([Int]) -> Int) {
     var graph = initialGraph
     // First, create the indexer.
     let indexer : ([Int]) -> Int = { (coordinates: [Int]) -> Int  in
@@ -100,21 +107,22 @@ public func createDiGrid<V: AbstractDiVertex, E: AbstractDiEdge>(dimensions: [In
 }
 
 // FIXME: Test this
-public func createDiGrid2(dimensions: Int...) -> (DiGraph<DiVertex, DiEdge>, ([Int]) -> Int) {
-    let initGrid = DiGraph<DiVertex, DiEdge>()
-    let vertexMaker = { (_: [Int], id: Int) -> DiVertex in
-        return DiVertex(id: id)
+public func createDiGrid2(dimensions: Int...) -> (IntDiGraph, ([Int]) -> Int) {
+    let initGrid = IntDiGraph()
+    var edgeIdGenerator = IntIndexGenerator()
+    let vertexMaker = { (_: [Int], id: Int) -> IntVertex in
+        return IntVertex(id: id)
     }
-    let edgeMaker = { (_: [Int], vertex1Id: Int, _: [Int], vertex2Id: Int) -> DiEdge in
-        return DiEdge(id: -1, start: vertex1Id, end: vertex2Id)
+    let edgeMaker = { (_: [Int], vertex1Id: Int, _: [Int], vertex2Id: Int) -> IntDiEdge in
+        return IntDiEdge(id: edgeIdGenerator.next(), start: vertex1Id, end: vertex2Id)
     }
     let (grid, indexer) = createDiGrid(dimensions: dimensions, vertexMaker: vertexMaker, edgeMaker: edgeMaker, initialGraph: initGrid)
     return (grid, indexer)
 }
 
-public func createDiGrid(dimensions: Int...) -> (DiGraph<DiVertex, DiEdge>, ([Int]) -> Int) {
-    var grid = DiGraph<DiVertex, DiEdge>()
-    
+public func createDiGrid(dimensions: Int...) -> (IntDiGraph, ([Int]) -> Int) {
+    var grid = IntDiGraph()
+    var edgeIdGenerator = IntIndexGenerator()
     let indexer : ([Int]) -> Int = { (coordinates: [Int]) -> Int  in
         var id = 0
         for coordinateIdx in coordinates.indices.reversed() {
@@ -142,7 +150,7 @@ public func createDiGrid(dimensions: Int...) -> (DiGraph<DiVertex, DiEdge>, ([In
     
     // Create vertices
     loop { coordinates in
-        let vertex = DiVertex(id: indexer(coordinates))
+        let vertex = IntVertex(id: indexer(coordinates))
         grid.add(vertex: vertex)
     }
     
@@ -155,12 +163,12 @@ public func createDiGrid(dimensions: Int...) -> (DiGraph<DiVertex, DiEdge>, ([In
             if coordinate > 0 {
                 var neighboorhCoordinates = coordinates
                 neighboorhCoordinates[dimensionIdx] -= 1
-                _ = grid.addEdge(from: vertexId, to: indexer(neighboorhCoordinates))
+                _ = grid.addEdge(from: vertexId, to: indexer(neighboorhCoordinates), indexGenerator: &edgeIdGenerator)
             }
             if coordinate < dimensions[dimensionIdx] - 1 {
                 var neighboorhCoordinates = coordinates
                 neighboorhCoordinates[dimensionIdx] += 1
-                _ = grid.addEdge(from: vertexId, to: indexer(neighboorhCoordinates))
+                _ = grid.addEdge(from: vertexId, to: indexer(neighboorhCoordinates), indexGenerator: &edgeIdGenerator)
             }
         }
     }

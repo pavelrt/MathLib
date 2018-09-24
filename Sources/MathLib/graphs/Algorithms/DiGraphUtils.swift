@@ -8,7 +8,7 @@
 import Foundation
 
 
-extension AbstractDiGraph {
+extension AbstractFiniteDiGraph {
     public var isSymmetric : Bool {
         for (_,diEdge) in diEdges {
             if findEdge(from: diEdge.end, to: diEdge.start).isEmpty {

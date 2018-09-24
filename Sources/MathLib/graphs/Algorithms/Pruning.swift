@@ -8,7 +8,7 @@
 import Foundation
 
 public func pruneEdges<G: AbstractMutableGraph>(of graph: G, probabilityToKeepEdge: Double) -> G {
-    var edgesIdsToPrune = [Int]()
+    var edgesIdsToPrune = [G.E.Index]()
     
     for (edgeId, _) in graph.edges {
         let randomNumber = drand48()
