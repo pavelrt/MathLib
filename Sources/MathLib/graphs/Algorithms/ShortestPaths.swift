@@ -7,7 +7,7 @@
 
 import Foundation
 
-public func findMinimalShortestPathsMatching<G: AbstractFiniteDiGraph>(in graph: G, startGroup: [G.V.Index], endGroup: [G.V.Index], lengths: @escaping (G.E.Index) -> Double) -> [(start: G.V.Index, end: G.V.Index, distance: Double)] {
+public func findMinimalShortestPathsMatching<G: AbstractDiGraph>(in graph: G, startGroup: [G.V.Index], endGroup: [G.V.Index], lengths: @escaping (G.E.Index) -> Double) -> [(start: G.V.Index, end: G.V.Index, distance: Double)] {
     var distancesHeap = PriorityQueue<TwoVerticesDistance<G.V.Index>>()
     var orderId = 0
     for startVertexId in startGroup {

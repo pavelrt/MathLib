@@ -20,10 +20,10 @@ public protocol AbstractEdge {
 }
 
 extension AbstractEdge {
-    var vertex1Id : VertexIndex {
+    public var vertex1Id : VertexIndex {
         return vertices.e1
     }
-    var vertex2Id : VertexIndex {
+    public var vertex2Id : VertexIndex {
         return vertices.e2
     }
 }
