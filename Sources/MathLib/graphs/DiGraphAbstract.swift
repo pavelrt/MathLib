@@ -42,6 +42,8 @@ public protocol AbstractMutableDiGraph : AbstractFiniteDiGraph {
     mutating func add(vertex: V)
     mutating func remove(edge: E)
     mutating func remove(vertex: V)
+    mutating func update(edge: E)
+    mutating func update(vertex: V)
 }
 
 

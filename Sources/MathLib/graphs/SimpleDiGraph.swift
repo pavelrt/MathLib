@@ -55,6 +55,97 @@ public struct DiGraph<V: AbstractVertex, E: AbstractDiEdge> : AbstractFiniteDiGr
     }
 }
 
+extension DiGraph : AbstractMutableDiGraph {
+    mutating public func add(edge: E) {
+        guard diEdges[edge.id] == nil else {
+            fatalError("Graph already contains an edge with the same id.")
+        }
+        attachOutgoingEdge(to: edge.start, edgeId: edge.id, neighborId: edge.end)
+        attachIncomingEdge(to: edge.end, edgeId: edge.id, neighborId: edge.start)
+        diEdges[edge.id] = edge
+    }
+    
+    public mutating func add(vertex: V) {
+        guard diVertices[vertex.id] == nil else {
+            fatalError("Graph already contains a vertex with the same id.")
+        }
+        diVertices[vertex.id] = vertex
+    }
+    
+    public mutating func remove(edge: E) {
+        assert(diEdges[edge.id] != nil, "Removing non-existing edge.")
+        removeOutgoingEdge(from: edge.start, edgeId: edge.id)
+        removeIncomingEdge(from: edge.end, edgeId: edge.id)
+        diEdges.removeValue(forKey: edge.id)
+    }
+    
+    public mutating func remove(vertex: V) {
+        assert(diVertices[vertex.id] != nil, "Removing non-existing vertex.")
+        let vertexOutgoingNeighbors = outgoingNeighbors(of: vertex.id)
+        for neighbor in vertexOutgoingNeighbors {
+            remove(edge: neighbor.edge)
+        }
+        let vertexIncomingNeighbors = incomingNeighbors(of: vertex.id)
+        for neighbor in vertexIncomingNeighbors {
+            remove(edge: neighbor.edge)
+        }
+        diVertices.removeValue(forKey: vertex.id)
+    }
+    
+    public mutating func update(edge: E) {
+        guard let oldEdge = diEdge(edge.id) else {
+            fatalError("Updating non-existing edge.")
+        }
+        if oldEdge.start == edge.start && oldEdge.end == edge.end {
+            diEdges[edge.id] = edge
+        } else {
+            remove(edge: oldEdge)
+            add(edge: edge)
+        }
+    }
+    
+    public mutating func update(vertex: V) {
+        guard diVertex(vertex.id) != nil else {
+            fatalError("Updating non-existing vertex.")
+        }
+        diVertices[vertex.id] = vertex
+    }
+}
+
+extension DiGraph {
+    private mutating func attachOutgoingEdge(to vertexId: V.Index, edgeId: E.Index, neighborId: V.Index) {
+        var vertexOutgoingNeighbors = outgoingNeighbors[vertexId] ?? []
+        vertexOutgoingNeighbors.append(NeighborTuple(vertexId: neighborId, edgeId: edgeId))
+        outgoingNeighbors[vertexId] = vertexOutgoingNeighbors
+    }
+    private mutating func attachIncomingEdge(to vertexId: V.Index, edgeId: E.Index, neighborId: V.Index) {
+        var vertexIncomingNeighbors = incomingNeighbors[vertexId] ?? []
+        vertexIncomingNeighbors.append(NeighborTuple(vertexId: neighborId, edgeId: edgeId))
+        incomingNeighbors[vertexId] = vertexIncomingNeighbors
+    }
+    private mutating func removeOutgoingEdge(from vertexId: V.Index, edgeId: E.Index) {
+        let vertexOutgoingNeighbors = outgoingNeighbors[vertexId]!.filter {$0.edgeId != edgeId}
+        outgoingNeighbors[vertexId] = vertexOutgoingNeighbors
+    }
+    private mutating func removeIncomingEdge(from vertexId: V.Index, edgeId: E.Index) {
+        let vertexIncomingNeighbors = incomingNeighbors[vertexId]!.filter {$0.edgeId != edgeId}
+        incomingNeighbors[vertexId] = vertexIncomingNeighbors
+    }
+}
+
+extension DiGraph: Equatable where V: Equatable, E: Equatable {
+    
+}
+
+extension DiGraph : Hashable where V: Hashable, E:Hashable {
+    
+}
+
+extension DiGraph : Codable where V: Codable, E: Codable, V.Index : Codable, E.Index: Codable {
+    
+}
+
+
 public struct IntDiEdge : AbstractDiEdge {
     public typealias Index = Int
     public typealias VertexIndex = Int
@@ -199,14 +290,15 @@ extension DiGraph {
         self.diEdges = [E.Index: E]()
         
         for (vertexId, _) in diVertices {
-            
-            let vertexOutgoingNeighbors = graph.outgoingNeighbors(of: vertexId).filter { verticesIds.contains($0.vertex.id) }
+            let outgoing = graph.outgoingNeighbors(of: vertexId)
+            let vertexOutgoingNeighbors = outgoing.filter { verticesIds.contains($0.vertex.id) }
             for neighbor in vertexOutgoingNeighbors where diEdges[neighbor.edge.id] == nil {
                 diEdges[neighbor.edge.id] = neighbor.edge
             }
             outgoingNeighbors[vertexId] = vertexOutgoingNeighbors.map { NeighborTuple(vertexId: $0.vertex.id, edgeId: $0.edge.id) }
             
-            let vertexIncomingNeighbors = graph.incomingNeighbors(of: vertexId).filter { verticesIds.contains($0.vertex.id) }
+            let incoming = graph.incomingNeighbors(of: vertexId)
+            let vertexIncomingNeighbors = incoming.filter { verticesIds.contains($0.vertex.id) }
             for neighbor in vertexIncomingNeighbors where diEdges[neighbor.edge.id] == nil {
                 diEdges[neighbor.edge.id] = neighbor.edge
             }
@@ -257,32 +349,11 @@ extension DiGraph {
     }
 }
 
-extension DiGraph : AbstractMutableDiGraph {
-    
-    
-    
-    
-    
-    public mutating func remove(edge: E) {
-        assert(diEdges[edge.id] != nil, "Removing non-existing edge.")
-        removeOutgoingEdge(from: edge.start, edgeId: edge.id)
-        removeIncomingEdge(from: edge.end, edgeId: edge.id)
-        
-        diEdges.removeValue(forKey: edge.id)
-    }
-    
-    public mutating func remove(vertex: V) {
-        assert(diVertices[vertex.id] != nil, "Removing non-existing vertex.")
-        let vertexOutgoingNeighbors = outgoingNeighbors(of: vertex.id)
-        for neighbor in vertexOutgoingNeighbors {
-            remove(edge: neighbor.edge)
-        }
-        let vertexIncomingNeighbors = incomingNeighbors(of: vertex.id)
-        for neighbor in vertexIncomingNeighbors {
-            remove(edge: neighbor.edge)
-        }
-        diVertices.removeValue(forKey: vertex.id)
-    }
+
+
+// Old functions below. TO delete.
+
+extension DiGraph {
     
     @available(*, deprecated)
     mutating public func delete(vertexWithId id : V.Index) {
@@ -337,63 +408,11 @@ extension DiGraph : AbstractMutableDiGraph {
     
     
     
-    mutating public func add(edge: E) {
-        guard diEdges[edge.id] == nil else {
-            fatalError("Graph already contains an edge with the same id.")
-        }
-        attachOutgoingEdge(to: edge.start, edgeId: edge.id, neighborId: edge.end)
-        attachIncomingEdge(to: edge.end, edgeId: edge.id, neighborId: edge.start)
-        
-        diEdges[edge.id] = edge
-        
-        
-//        var newEdge = edge
-//        newEdge.id = newEdgeId
-//        diEdges[newEdgeId] = newEdge
-//
-//        var newStart = diVertices[newEdge.start]!
-//        newStart.outEdges.append(newEdgeId)
-//        newStart.outNeighbors.append(newEdge.end)
-//        diVertices[newEdge.start] = newStart
-//
-//        var newEnd = diVertices[newEdge.end]!
-//        newEnd.inEdges.append(newEdgeId)
-//        newEnd.inNeighbors.append(newEdge.start)
-//        diVertices[newEdge.end] = newEnd
-//
-//        newEdgeId += 1
-    }
+
     
-    public mutating func add(vertex: V) {
-        guard diVertices[vertex.id] == nil else {
-            fatalError("Graph already contains a vertex with the same id.")
-        }
-        diVertices[vertex.id] = vertex
-        
-//        self.diVertices[vertex.id] = vertex
-//        if newVertexId <= vertex.id {
-//            newVertexId = vertex.id + 1
-//        }
-    }
+
     
-    private mutating func attachOutgoingEdge(to vertexId: V.Index, edgeId: E.Index, neighborId: V.Index) {
-        var vertexOutgoingNeighbors = outgoingNeighbors[vertexId] ?? []
-        vertexOutgoingNeighbors.append(NeighborTuple(vertexId: neighborId, edgeId: edgeId))
-        outgoingNeighbors[vertexId] = vertexOutgoingNeighbors
-    }
-    private mutating func attachIncomingEdge(to vertexId: V.Index, edgeId: E.Index, neighborId: V.Index) {
-        var vertexIncomingNeighbors = incomingNeighbors[vertexId] ?? []
-        vertexIncomingNeighbors.append(NeighborTuple(vertexId: neighborId, edgeId: edgeId))
-        incomingNeighbors[vertexId] = vertexIncomingNeighbors
-    }
-    private mutating func removeOutgoingEdge(from vertexId: V.Index, edgeId: E.Index) {
-        let vertexOutgoingNeighbors = outgoingNeighbors[vertexId]!.filter {$0.edgeId != edgeId}
-        outgoingNeighbors[vertexId] = vertexOutgoingNeighbors
-    }
-    private mutating func removeIncomingEdge(from vertexId: V.Index, edgeId: E.Index) {
-        let vertexIncomingNeighbors = incomingNeighbors[vertexId]!.filter {$0.edgeId != edgeId}
-        incomingNeighbors[vertexId] = vertexIncomingNeighbors
-    }
+
 }
 
 
@@ -445,14 +464,4 @@ extension DiGraph where DiGraph.V == IntVertex, DiGraph.E == IntDiEdge {
 //}
 
 
-extension DiGraph: Equatable where V: Equatable, E: Equatable {
-    
-}
 
-extension DiGraph : Hashable where V: Hashable, E:Hashable {
-    
-}
-
-extension DiGraph : Codable where V: Codable, E: Codable, V.Index : Codable, E.Index: Codable {
-    
-}
