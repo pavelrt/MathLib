@@ -10,7 +10,7 @@ import Foundation
 public struct DelaunayEdge<P: Abstract2DPoint> : Hashable {
     public var hashValue: Int {
         get {
-            return "\(vertex1)\(vertex2)".hashValue
+            return vertex1.hashValue &+ vertex2.hashValue // Needs to be combined commutatively.
         }
     }
     
@@ -29,11 +29,14 @@ public func delaunayEdges<P: Abstract2DPoint>(points: [P]) -> [DelaunayEdge<P>] 
     for triangle in triangles {
         edges = edges.union(Set(triangle.edges))
     }
-    //FIXME: There is some strange swift 4.1 bug when we use "Array(edges)". Try again for swift 4.2. or send bug report. Fails in generating game with 17 UAVs.
-    var a = [DelaunayEdge<P>]()
-    a.reserveCapacity(edges.count)
-    for e in edges {
-        a.append(e)
-    }
-    return a
+    
+    return Array(edges)
+    
+//  probably fixed! error was in hash function.  //FIXME: There is some strange swift 4.1 bug when we use "Array(edges)". Try again for swift 4.2. or send bug report. Fails in generating game with 17 UAVs.
+//    var a = [DelaunayEdge<P>]()
+//    a.reserveCapacity(edges.count)
+//    for e in edges {
+//        a.append(e)
+//    }
+//    return a
 }

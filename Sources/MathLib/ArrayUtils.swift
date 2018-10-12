@@ -35,29 +35,29 @@ public func allSubsets<E>(of a: [E]) -> [[E]] {
     return result
 }
 
-public func cartesianProduct<E>(of actions: [Int:[E]]) ->[[(Int,E)]] {
+public func cartesianProduct<E>(of actions: [(Int,[E])]) ->[[(Int,E)]] {
     //print(actions)
     var combinations = [[(Int,E)]]()
-    let keys = Array(actions.keys)
+    //let keys = Array(actions.keys)
     func generate(keyIdx: Int, combination: [(Int,E)]) {
-        if keyIdx >= keys.count {
+        if keyIdx >= actions.count {
             if !combination.isEmpty {
                 combinations.append(combination)
             }
         } else {
-            if actions[keys[keyIdx]]!.isEmpty {
+            if actions[keyIdx].1.isEmpty {
                 generate(keyIdx: keyIdx + 1, combination: combination)
             } else {
-                for v in actions[keys[keyIdx]]! {
+                for v in actions[keyIdx].1 {
                     var newCombination = combination
-                    newCombination.append((keys[keyIdx], v))
+                    newCombination.append((actions[keyIdx].0, v))
                     generate(keyIdx: keyIdx + 1, combination: newCombination)
                 }
             }
         }
     }
     var initArray = [(Int,E)]()
-    initArray.reserveCapacity(keys.count)
+    initArray.reserveCapacity(actions.count)
     generate(keyIdx: 0, combination: initArray)
     //print("combs")
     //print(combinations)

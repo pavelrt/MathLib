@@ -167,6 +167,7 @@ extension Graph : AbstractMutableGraph {
             remove(edge: neighbor.edge)
         }
         vertices.removeValue(forKey: vertex.id)
+        neighbors.removeValue(forKey: vertex.id)
     }
     
     public mutating func add(edge: E) {
@@ -200,6 +201,28 @@ extension Graph : AbstractMutableGraph {
     private mutating func filterNeighbors(of vertexId: V.Index, _ isIncluded: (NeighborTuple<V.Index, E.Index>) -> Bool) {
         let vertexNeighbors = (neighbors[vertexId] ?? []).filter { isIncluded($0) }
         neighbors[vertexId] = vertexNeighbors
+    }
+}
+
+extension Graph {
+    mutating public func removeParallelEdges(uniquingEdgesWith chooseEdge: ([E]) -> E) {
+        var edgesIdToRemove = Set<E.Index>()
+        var processedVertices = Set<V.Index>()
+        for (vertexId, _) in vertices {
+            let vertexNeighbors = neighbors[vertexId]!.filter { $0.vertexId != vertexId && !processedVertices.contains($0.vertexId) } // No loops.
+            processedVertices.insert(vertexId)
+            let allParallels = Dictionary(grouping: vertexNeighbors, by: { $0.vertexId })
+            for (_, parallelNeighbors) in allParallels where parallelNeighbors.count > 1 {
+                let parallelEdges = parallelNeighbors.map {edge($0.edgeId)!}
+                let edgeToKeep = chooseEdge(parallelEdges)
+                for edge in parallelEdges where edge.id != edgeToKeep.id {
+                    edgesIdToRemove.insert(edge.id)
+                }
+            }
+        }
+        for edgeId in edgesIdToRemove {
+            remove(edge: edge(edgeId)!)
+        }
     }
 }
 

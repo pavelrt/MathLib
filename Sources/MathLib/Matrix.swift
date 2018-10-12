@@ -102,3 +102,6 @@ extension Matrix : CustomStringConvertible {
     
 }
 
+extension Matrix : Codable {
+    
+}

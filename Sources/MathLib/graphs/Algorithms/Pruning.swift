@@ -11,7 +11,7 @@ public func pruneEdges<G: AbstractMutableGraph>(of graph: G, probabilityToKeepEd
     var edgesIdsToPrune = [G.E.Index]()
     
     for (edgeId, _) in graph.edges {
-        let randomNumber = drand48()
+        let randomNumber = Double.random(in: 0..<1)
         if randomNumber > probabilityToKeepEdge {
             edgesIdsToPrune.append(edgeId)
         }

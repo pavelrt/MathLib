@@ -25,11 +25,15 @@ public struct DiGraph<V: AbstractVertex, E: AbstractDiEdge> : AbstractFiniteDiGr
     }
     
     public func outgoingNeighbors(of vertexId: E.VertexIndex) -> NeighborsCollection {
-        return (outgoingNeighbors[vertexId] ?? []).map {(edge: diEdge($0.edgeId)!, vertex: diVertex($0.vertexId)!)}
+        let vertexOutgoingNeighborsIds = outgoingNeighbors[vertexId] ?? []
+        let vertexOutgoingNeighbors = vertexOutgoingNeighborsIds.map {(edge: diEdge($0.edgeId)!, vertex: diVertex($0.vertexId)!)}
+        return vertexOutgoingNeighbors
     }
     
     public func incomingNeighbors(of vertexId: E.VertexIndex) -> NeighborsCollection {
-        return (incomingNeighbors[vertexId] ?? []).map {(edge: diEdge($0.edgeId)!, vertex: diVertex($0.vertexId)!)}
+        let vertexIncomingNeighborsIds = incomingNeighbors[vertexId] ?? []
+        let vertexIncomingNeighbors = vertexIncomingNeighborsIds.map {(edge: diEdge($0.edgeId)!, vertex: diVertex($0.vertexId)!)}
+        return vertexIncomingNeighbors
     }
     
     public var numberOfVertices: Int {
@@ -90,6 +94,8 @@ extension DiGraph : AbstractMutableDiGraph {
             remove(edge: neighbor.edge)
         }
         diVertices.removeValue(forKey: vertex.id)
+        outgoingNeighbors.removeValue(forKey: vertex.id)
+        incomingNeighbors.removeValue(forKey: vertex.id)
     }
     
     public mutating func update(edge: E) {
@@ -285,7 +291,9 @@ extension DiGraph {
             return (vertex.id, vertex)
         })
         self.outgoingNeighbors = [:]
+        self.outgoingNeighbors.reserveCapacity(verticesIds.count)
         self.incomingNeighbors = [:]
+        self.incomingNeighbors.reserveCapacity(verticesIds.count)
         
         self.diEdges = [E.Index: E]()
         
