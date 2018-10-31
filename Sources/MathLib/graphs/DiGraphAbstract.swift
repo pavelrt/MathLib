@@ -20,9 +20,12 @@ public protocol AbstractDiGraph {
     associatedtype V: AbstractVertex
     associatedtype E: AbstractDiEdge where E.VertexIndex == V.Index
     associatedtype NeighborsCollection : Sequence where NeighborsCollection.Element == (edge: E, vertex: V)
+    associatedtype NeighborsIdCollection : Sequence where NeighborsIdCollection.Element == (edgeId: E.Index, vertexId: V.Index)
     
     func outgoingNeighbors(of vertexId: V.Index) -> NeighborsCollection
     func incomingNeighbors(of vertexId: V.Index) -> NeighborsCollection
+    func outgoingNeighborsId(of vertexId: V.Index) -> NeighborsIdCollection
+    func incomingNeighborsId(of vertexId: V.Index) -> NeighborsIdCollection
     func diVertex(_ id: V.Index) -> V?
     func diEdge(_ id: E.Index) -> E?
 }

@@ -11,6 +11,8 @@ public struct DiGraph<V: AbstractVertex, E: AbstractDiEdge> : AbstractFiniteDiGr
     public typealias VertexCollection = [V.Index:V]
     public typealias EdgeCollection = [E.Index:E]
     public typealias NeighborsCollection = [(edge: E, vertex: V)]
+    public typealias NeighborsIdCollection = [(edgeId: E.Index, vertexId: V.Index)]
+
     
     public private(set) var diVertices: VertexCollection
     public private(set) var diEdges: EdgeCollection
@@ -30,10 +32,22 @@ public struct DiGraph<V: AbstractVertex, E: AbstractDiEdge> : AbstractFiniteDiGr
         return vertexOutgoingNeighbors
     }
     
+    public func outgoingNeighborsId(of vertexId: E.VertexIndex) -> NeighborsIdCollection {
+        let vertexOutgoingNeighborsIds = outgoingNeighbors[vertexId] ?? []
+        let vertexOutgoingNeighborsIds2 = vertexOutgoingNeighborsIds.map {(edgeId: $0.edgeId, vertexId: $0.vertexId)}
+        return vertexOutgoingNeighborsIds2
+    }
+    
     public func incomingNeighbors(of vertexId: E.VertexIndex) -> NeighborsCollection {
         let vertexIncomingNeighborsIds = incomingNeighbors[vertexId] ?? []
         let vertexIncomingNeighbors = vertexIncomingNeighborsIds.map {(edge: diEdge($0.edgeId)!, vertex: diVertex($0.vertexId)!)}
         return vertexIncomingNeighbors
+    }
+    
+    public func incomingNeighborsId(of vertexId: E.VertexIndex) -> NeighborsIdCollection {
+        let vertexIncomingNeighborsIds = incomingNeighbors[vertexId] ?? []
+        let vertexIncomingNeighborsIds2 = vertexIncomingNeighborsIds.map {(edgeId: $0.edgeId, vertexId: $0.vertexId)}
+        return vertexIncomingNeighborsIds2
     }
     
     public var numberOfVertices: Int {

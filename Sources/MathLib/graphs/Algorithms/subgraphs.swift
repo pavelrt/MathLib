@@ -184,6 +184,7 @@ public struct InducedSubDiGraph<G: AbstractFiniteDiGraph> : AbstractFiniteDiGrap
     public typealias VertexCollection = LazyMapCollection<Set<V.Index>, (key: V.Index, value: V)>
     public typealias EdgeCollection = LazyMapCollection<LazyMapCollection<LazyFilterCollection<LazyMapCollection<G.EdgeCollection, G.E?>>, G.E>, (key: E.Index, value: G.E)>
     public typealias NeighborsCollection = [(edge: E, vertex: V)]
+    public typealias NeighborsIdCollection = [(edgeId: E.Index, vertexId: V.Index)]
     
     
     
@@ -200,8 +201,18 @@ public struct InducedSubDiGraph<G: AbstractFiniteDiGraph> : AbstractFiniteDiGrap
         return neighbors
     }
     
+    public func outgoingNeighborsId(of vertexId: G.E.VertexIndex) -> NeighborsIdCollection {
+        let neighbors = graph.outgoingNeighborsId(of: vertexId).filter {inducedVerticesIds.contains($0.vertexId)}
+        return neighbors
+    }
+    
     public func incomingNeighbors(of vertexId: G.E.VertexIndex) -> NeighborsCollection {
         let neighbors = graph.incomingNeighbors(of: vertexId).filter {inducedVerticesIds.contains($0.vertex.id)}
+        return neighbors
+    }
+    
+    public func incomingNeighborsId(of vertexId: G.E.VertexIndex) -> NeighborsIdCollection {
+        let neighbors = graph.incomingNeighborsId(of: vertexId).filter {inducedVerticesIds.contains($0.vertexId)}
         return neighbors
     }
     

@@ -21,8 +21,17 @@ extension AbstractDiEdge {
 
 extension AbstractDiGraph {
     
+//    public func findEdge(from start: V.Index, to end: V.Index) -> [E] {
+//        let neighbors = outgoingNeighbors(of: start)
+//        let edges = neighbors.filter {$0.vertex.id == end } .map { $0.edge }
+//        return edges
+//        //return findEdge(from: self.diVertex(start)!, to: self.diVertex(end)!)
+//    }
+    
     public func findEdge(from start: V.Index, to end: V.Index) -> [E] {
-        return outgoingNeighbors(of: start).filter {$0.vertex.id == end } .map { $0.edge }
+        let neighbors = outgoingNeighborsId(of: start)
+        let edges = neighbors.filter {$0.vertexId == end } .map { diEdge($0.edgeId)! }
+        return edges
         //return findEdge(from: self.diVertex(start)!, to: self.diVertex(end)!)
     }
     
