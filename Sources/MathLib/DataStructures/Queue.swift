@@ -16,8 +16,13 @@ import Foundation
  Enqueuing and dequeuing are O(1) operations.
  */
 public struct Queue<T> {
-    fileprivate var array = [T?]()
-    fileprivate var head = 0
+    fileprivate var array : [T?]
+    fileprivate var head : Int
+    
+    public init() {
+        self.array = [T?]()
+        self.head = 0
+    }
     
     public var isEmpty: Bool {
         return count == 0
