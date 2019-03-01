@@ -29,16 +29,20 @@ public func findGreedyLongPath<G:AbstractDiGraph>(in graph: G, from: G.V.Index, 
 
 public func findGreedyPath<G:AbstractDiGraph>(in graph: G, from: G.V.Index, visiting vertices: [G.V.Index], lengths: @escaping (G.E.Index) -> Double) -> (Double, [(G.E.Index, G.V.Index)])? {
     var unvisited = Set(vertices)
+    //var unvisited = vertices
+
     var currentFrom = from
+    print(currentFrom)
     var path = [(G.E.Index, G.V.Index)]()
     var totalDistance = 0.0
     while !unvisited.isEmpty {
         let (distances, paths) = shortestPathsDijkstra(in: graph, sourceId: currentFrom, pathTo: Array(unvisited), lengths: lengths, distancesTo: unvisited)
-        if let nearestVertexIdPathDistance = distances.filter({ unvisited.contains($0.key) }).min(by: {$0.value < $1.value}) {
+        if let nearestVertexIdPathDistance = distances.filter({ unvisited.contains($0.key) }).min(by: {($0.value < $1.value || ($0.value == $1.value && $0.key < $1.key))}) {
             path.append(contentsOf: paths[nearestVertexIdPathDistance.key]!)
             totalDistance += nearestVertexIdPathDistance.value
             unvisited.remove(nearestVertexIdPathDistance.key)
             currentFrom = nearestVertexIdPathDistance.key
+            print(currentFrom)
         } else {
             return nil
         }

@@ -8,13 +8,13 @@
 import Foundation
 
 public protocol AbstractVertex {
-    associatedtype Index : Hashable
+    associatedtype Index : Hashable & Comparable
     var id : Index { get }
 }
 
 public protocol AbstractEdge {
-    associatedtype Index: Hashable
-    associatedtype VertexIndex : Hashable
+    associatedtype Index: Hashable & Comparable
+    associatedtype VertexIndex : Hashable & Comparable
     var id : Index { get }
     var vertices : TwoSet<VertexIndex> { get }
 }
