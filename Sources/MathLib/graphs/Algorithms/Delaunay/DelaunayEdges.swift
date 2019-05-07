@@ -8,11 +8,14 @@
 import Foundation
 
 public struct DelaunayEdge<P: Abstract2DPoint> : Hashable {
-    public var hashValue: Int {
-        get {
-            return vertex1.hashValue &+ vertex2.hashValue // Needs to be combined commutatively.
-        }
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(vertex1.hashValue &+ vertex2.hashValue) // Needs to be combined commutatively.
     }
+//    public var hashValue: Int {
+//        get {
+//            return vertex1.hashValue &+ vertex2.hashValue // Needs to be combined commutatively.
+//        }
+//    }
     
     public static func == (lhs: DelaunayEdge<P>, rhs: DelaunayEdge<P>) -> Bool {
         return (lhs.vertex1 == rhs.vertex1 && lhs.vertex2 == rhs.vertex2) || (lhs.vertex1 == rhs.vertex2 && lhs.vertex2 == rhs.vertex1)

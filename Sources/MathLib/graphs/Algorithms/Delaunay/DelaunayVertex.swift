@@ -46,9 +46,13 @@ extension Array where Element:Equatable {
 }
 
 extension DelaunayVertex: Hashable {
-    public var hashValue: Int {
-        return "\(x)\(y)".hashValue
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(x.hashValue)
+        hasher.combine(y.hashValue)
     }
+//    public var hashValue: Int {
+//        return "\(x)\(y)".hashValue
+//    }
 }
 
 

@@ -95,7 +95,7 @@ public struct PriorityQueue<T: Comparable> {
     ///
     /// - parameter item: The item to remove the first occurrence of.
     public mutating func remove(_ item: T) {
-        if let index = heap.index(of: item) {
+        if let index = heap.firstIndex(of: item) {
             heap.swapAt(index, heap.count - 1)
             heap.removeLast()
             if index < heap.count { // if we removed the last item, nothing to swim
@@ -162,9 +162,12 @@ extension PriorityQueue : Equatable {
 }
 
 extension PriorityQueue: Hashable where T : Hashable {
-    public var hashValue: Int {
-        return heap.hashValue
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(heap.hashValue)
     }
+//    public var hashValue: Int {
+//        return heap.hashValue
+//    }
 }
 
 // MARK: - GeneratorType

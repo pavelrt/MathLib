@@ -69,7 +69,12 @@ public struct TwoSet<Element: Hashable> : Hashable {
     public static func == (lhs: TwoSet, rhs: TwoSet) -> Bool {
         return (lhs.e1 == rhs.e1 && lhs.e2 == rhs.e2) || (lhs.e1 == rhs.e2 && lhs.e2 == rhs.e1)
     }
-    public var hashValue: Int {
-        return e1.hashValue &+ e2.hashValue // Needs to be combined commutatively.
+    
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(e1.hashValue &+ e2.hashValue) // Needs to be combined commutatively.
     }
+    
+//    public var hashValue: Int {
+//        return e1.hashValue &+ e2.hashValue // Needs to be combined commutatively.
+//    }
 }
