@@ -32,7 +32,7 @@ public func findGreedyPath<G:AbstractDiGraph>(in graph: G, from: G.V.Index, visi
     //var unvisited = vertices
 
     var currentFrom = from
-    print(currentFrom)
+    //print(currentFrom)
     var path = [(G.E.Index, G.V.Index)]()
     var totalDistance = 0.0
     while !unvisited.isEmpty {
@@ -42,7 +42,7 @@ public func findGreedyPath<G:AbstractDiGraph>(in graph: G, from: G.V.Index, visi
             totalDistance += nearestVertexIdPathDistance.value
             unvisited.remove(nearestVertexIdPathDistance.key)
             currentFrom = nearestVertexIdPathDistance.key
-            print(currentFrom)
+            //print(currentFrom)
         } else {
             return nil
         }

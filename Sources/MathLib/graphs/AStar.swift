@@ -7,8 +7,6 @@
 
 import Foundation
 
-
-
 public protocol AStarNode : Hashable {
     associatedtype E
     var outgoingEdges : [E] { get }
@@ -18,20 +16,19 @@ public protocol AStarNode : Hashable {
 }
 
 
-public func aStarSearch<N: AStarNode>(from initNode: N, pruneFunction: ((N) -> Bool)?, continueFunction: (() -> Bool)? = nil, checkContinueCount: Int? = nil , maxSetSize: Int = 2_000_000, verbose: Bool = false) -> (solution: N, path: [N.E], solutionCost: Double)? {
-    
-    //---------
-    
+public func aStarSearch<N: AStarNode>(from initNode: N, pruneFunction: ((N) -> Bool)?, continueFunction: (() -> Bool)? = nil, checkContinueCount: Int? = nil , maxSetSize: Int = 2_000_000, verbose: Bool = false) -> (solution: N, path: [N.E], solutionCost: Double, log: AStarLog)? {
     var finishedNodes = Set<N>()
     var fScore = [N: Double]()
     var gScore = [N: Double]()
     var predecesor = [N: (N,N.E)]()
     var heapFrontier = PriorityQueue<FScoreNode<N>>()
     var heapOrderId = 0
+    var maxFrontierSize = 0
     var numberOfIterations = 0
     var numberOfInnerIterations = 0
     let initNodeFScore = initNode.heuristics
     heapFrontier.push(FScoreNode(fScore: initNodeFScore, orderId: heapOrderId, node: initNode))
+    maxFrontierSize += 1
     heapOrderId += 1
     fScore[initNode] = initNodeFScore
     gScore[initNode] = 0.0
@@ -39,6 +36,8 @@ public func aStarSearch<N: AStarNode>(from initNode: N, pruneFunction: ((N) -> B
     let verbose = true
     
     while let minVertex = heapFrontier.pop() {
+        
+        maxFrontierSize = max(maxFrontierSize, heapFrontier.count + 1)
         
         if numberOfIterations % 1000 == 0 {
             if finishedNodes.count > maxSetSize || heapFrontier.count > maxSetSize {
@@ -67,8 +66,8 @@ public func aStarSearch<N: AStarNode>(from initNode: N, pruneFunction: ((N) -> B
                 print("Final state found")
                 print("Iterations: \(numberOfIterations) Inner iterations, \(numberOfInnerIterations) Finished set size: \(finishedNodes.count) Frontier size: \(heapFrontier.count) F-score: \(minVertex.fScore) Cost: \(finalCost)")
             }
-            //let logItem = "Iterations, \(numberOfIterations), Inner iterations, \(numberOfInnerIterations), Finished set size, \(finishedNodes.count), Frontier size, \(heapFrontier.count), F-score, \(minVertex.fScore), Cost, \(gScore[current]!)"
-            return (current, reconstructPath(to: current, predecesor: predecesor), finalCost)
+            let log = AStarLog(closedSetSize: finishedNodes.count, maxOpenSetSize: maxFrontierSize, numberOfIterations: numberOfIterations, numberOfInnerIterations: numberOfIterations, solutionCost: gScore[current]!, solutionFScore: minVertex.fScore)
+            return (solution: current, path: reconstructPath(to: current, predecesor: predecesor), solutionCost: finalCost, log: log)
         }
         finishedNodes.insert(current)
         numberOfIterations += 1
@@ -98,8 +97,6 @@ public func aStarSearch<N: AStarNode>(from initNode: N, pruneFunction: ((N) -> B
         }
     }
     return nil
-    
-    //--------
 }
 
 fileprivate func reconstructPath<N: AStarNode>(to state: N, predecesor: [N: (N,N.E)]) -> [N.E] {
@@ -132,3 +129,14 @@ fileprivate struct FScoreNode<N: AStarNode> : Hashable, Comparable {
     let node : N
 }
 
+public struct AStarLog: CustomStringConvertible {
+    public let closedSetSize : Int
+    public let maxOpenSetSize : Int
+    public let numberOfIterations : Int
+    public let numberOfInnerIterations : Int
+    public let solutionCost : Double
+    public let solutionFScore : Double
+    public var description: String {
+        return "Iterations, \(numberOfIterations), Inner iterations, \(numberOfInnerIterations), Finished set size, \(closedSetSize), Max Frontier size, \(maxOpenSetSize), F-score, \(solutionFScore), Cost, \(solutionCost)"
+    }
+}
