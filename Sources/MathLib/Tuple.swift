@@ -8,24 +8,36 @@
 import Foundation
 
 public struct Tuple<T> {
-    public init(first: T, second: T) {
+    public init(_ first: T, _ second: T) {
         self.first = first
         self.second = second
     }
-    var first : T
-    var second : T
+    public var first : T
+    public var second : T
 }
 
 extension Tuple : Equatable where T : Equatable {
-//    public static func == (lhs: Tuple<T>, rhs: Tuple<T>) -> Bool {
-//        return lhs.first == rhs.first && lhs.second == rhs.second
-//    }
+
 }
 
 extension Tuple : Hashable where T : Hashable {
-//    public var hashValue: Int {
-//        // FIXME: Use hash combininer
-//        return first.combineHashValue(with: second.hashValue)
-//    }
+
+}
+
+public struct Triple<T> {
+    public var first, second, third: T
+    public init(_ first: T, _ second: T, _ third: T) {
+        self.first = first
+        self.second = second
+        self.third = third
+    }
+}
+
+extension Triple : Equatable where T : Equatable {
+
+}
+
+extension Triple : Hashable where T : Hashable {
+
 }
 
