@@ -78,7 +78,8 @@ extension Matrix {
         var newMatrix = Matrix(rows: self.rows, columns: self.columns + matrix.columns)
         for column in 0..<newMatrix.columns {
             for row in 0..<newMatrix.rows {
-                newMatrix[row,column] = column < self.columns ? self[row,column] : matrix[row, column - self.columns]
+                newMatrix[row,column] = column < self.columns ?
+                  self[row,column] : matrix[row, column - self.columns]
             }
         }
         return newMatrix

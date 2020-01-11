@@ -16,13 +16,9 @@ public struct Tuple<T> {
     public var second : T
 }
 
-extension Tuple : Equatable where T : Equatable {
+extension Tuple : Equatable where T : Equatable {}
 
-}
-
-extension Tuple : Hashable where T : Hashable {
-
-}
+extension Tuple : Hashable where T : Hashable {}
 
 public struct Triple<T> {
     public var first, second, third: T
@@ -33,11 +29,7 @@ public struct Triple<T> {
     }
 }
 
-extension Triple : Equatable where T : Equatable {
+extension Triple : Equatable where T : Equatable {}
 
-}
-
-extension Triple : Hashable where T : Hashable {
-
-}
+extension Triple : Hashable where T : Hashable {}
 

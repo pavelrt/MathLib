@@ -74,7 +74,8 @@ public struct Cuboid {
 }
 
 public func splitSet<P: Abstract3DPoint>(_ set: [P], toClosests points: [P]) -> [P: [P]] {
-    let intermediateDict = Dictionary(grouping: set.map { ($0, points[$0.findIndexOfClosestPoint(from: points)] )}, by: {$0.1})
+    let intermediateDict = Dictionary(
+      grouping: set.map { ($0, points[$0.findIndexOfClosestPoint(from: points)] )}, by: {$0.1})
     return intermediateDict.mapValues { $0.map { $0.0 } }
 }
 
