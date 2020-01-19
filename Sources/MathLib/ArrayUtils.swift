@@ -36,30 +36,30 @@ public func allSubsets<E>(of a: [E]) -> [[E]] {
 }
 
 public func cartesianProduct<E>(of actions: [(Int,[E])]) ->[[(Int,E)]] {
-    //print(actions)
-    var combinations = [[(Int,E)]]()
-    //let keys = Array(actions.keys)
-    func generate(keyIdx: Int, combination: [(Int,E)]) {
-        if keyIdx >= actions.count {
-            if !combination.isEmpty {
-                combinations.append(combination)
-            }
-        } else {
-            if actions[keyIdx].1.isEmpty {
-                generate(keyIdx: keyIdx + 1, combination: combination)
-            } else {
-                for v in actions[keyIdx].1 {
-                    var newCombination = combination
-                    newCombination.append((actions[keyIdx].0, v))
-                    generate(keyIdx: keyIdx + 1, combination: newCombination)
-                }
-            }
+  //print(actions)
+  var combinations = [[(Int,E)]]()
+  //let keys = Array(actions.keys)
+  func generate(keyIdx: Int, combination: [(Int,E)]) {
+    if keyIdx >= actions.count {
+      if !combination.isEmpty {
+        combinations.append(combination)
+      }
+    } else {
+      if actions[keyIdx].1.isEmpty {
+        generate(keyIdx: keyIdx + 1, combination: combination)
+      } else {
+        for v in actions[keyIdx].1 {
+          var newCombination = combination
+          newCombination.append((actions[keyIdx].0, v))
+          generate(keyIdx: keyIdx + 1, combination: newCombination)
         }
+      }
     }
-    var initArray = [(Int,E)]()
-    initArray.reserveCapacity(actions.count)
-    generate(keyIdx: 0, combination: initArray)
-    //print("combs")
-    //print(combinations)
-    return combinations
+  }
+  var initArray = [(Int,E)]()
+  initArray.reserveCapacity(actions.count)
+  generate(keyIdx: 0, combination: initArray)
+  //print("combs")
+  //print(combinations)
+  return combinations
 }
