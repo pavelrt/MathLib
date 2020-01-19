@@ -8,31 +8,31 @@
 import Foundation
 
 public func subtractArrays<N:Numeric>(a: [N], b: [N]) -> [N] {
-    assert(a.count == b.count)
-    var result = [N]()
-    result.reserveCapacity(a.count)
-    for i in a.indices {
-        result.append(a[i] - b[i])
-    }
-    return result
+  assert(a.count == b.count)
+  var result = [N]()
+  result.reserveCapacity(a.count)
+  for i in a.indices {
+    result.append(a[i] - b[i])
+  }
+  return result
 }
 
 
 public func allSubsets<E>(of a: [E]) -> [[E]] {
-    var result = [[E]]()
-    result.reserveCapacity(1 << a.count)
-    func add(_ t: [E], idx: Int) {
-        if idx >= a.count {
-            result.append(t)
-        } else {
-            add(t, idx: idx + 1)
-            var t = t
-            t.append(a[idx])
-            add(t, idx: idx + 1)
-        }
+  var result = [[E]]()
+  result.reserveCapacity(1 << a.count)
+  func add(_ t: [E], idx: Int) {
+    if idx >= a.count {
+      result.append(t)
+    } else {
+      add(t, idx: idx + 1)
+      var t = t
+      t.append(a[idx])
+      add(t, idx: idx + 1)
     }
-    add([], idx: 0)
-    return result
+  }
+  add([], idx: 0)
+  return result
 }
 
 public func cartesianProduct<E>(of actions: [(Int,[E])]) ->[[(Int,E)]] {
