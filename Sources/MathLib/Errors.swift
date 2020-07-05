@@ -8,5 +8,5 @@
 import Foundation
 
 struct MathLibError: Error {
-    let message : String
+  let message : String
 }

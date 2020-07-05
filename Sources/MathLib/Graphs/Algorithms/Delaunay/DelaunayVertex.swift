@@ -50,9 +50,6 @@ extension DelaunayVertex: Hashable {
         hasher.combine(x.hashValue)
         hasher.combine(y.hashValue)
     }
-//    public var hashValue: Int {
-//        return "\(x)\(y)".hashValue
-//    }
 }
 
 
